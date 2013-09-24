@@ -734,7 +734,6 @@ slim/register [
 						all [block? spec spec]
 						all [string? spec reduce [spec]]
 					]
-					either empty? filter-bu
 					plug/liquid: filter-bulk first data filter-mode spec
 				
 				]
