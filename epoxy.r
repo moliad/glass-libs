@@ -77,7 +77,7 @@ slim/register [
 		dirty*: dirty
 		detach*: detach
 		processor
-		process*: process
+		process*: --process
 	]
 	glob-lib: slim/open/expose 'glob none [!glob]
 	sillica-lib: slim/open 'sillica none
@@ -365,7 +365,7 @@ slim/register [
 				data
 			][
 				vin [{epoxy/!fast-add/process()}]
-				plug/liquid: if 1 < length? data [
+				plug/liquid: either 1 < length? data [
 					1 + subtract first data second data
 				][0]
 				vout
