@@ -202,6 +202,7 @@ slim/register [
 		prim-bevel
 		prim-x
 		prim-label
+		do-event
 	]
 	epoxy-lib: slim/open/expose 'epoxy none [!box-intersection]
 	
@@ -577,10 +578,14 @@ slim/register [
 					; these are bound and composed relative to the input being sent to glob at process-time.
 					gel-spec: [
 						; event backplane
-						none
-						; marbles are just labels and don't trigger events.
-						[]
-						
+						position dimension 
+						[
+							line-width 1 
+							pen none 
+							fill-pen (to-color gel/glob/marble/sid) 
+							box (data/position=) (data/position= + data/dimension= - 1x1)
+						]
+
 						; bg layer (ex: shadows, textures)
 						; keep in mind... this can be switched off for greater performance
 						;[]
@@ -893,7 +898,8 @@ slim/register [
 				event [object!]
 			][
 				vin [{HANDLE MARBLE}]
-				;vprint event/action
+				
+				;print event/action
 				switch event/action [
 					start-hover [
 						fill* event/marble/aspects/hover? true
@@ -903,6 +909,7 @@ slim/register [
 						fill* event/marble/aspects/hover? false
 					]
 				]
+				do-event event
 				
 				vout
 				none
