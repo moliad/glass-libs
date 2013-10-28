@@ -59,7 +59,7 @@ slim/register [
 		link*: link
 		unlink*: unlink
 		detach*: detach
-		process*: process
+		process*: --process
 	]
 
 

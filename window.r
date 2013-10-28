@@ -89,7 +89,7 @@ slim/register [
 		unlink*: unlink
 		dirty*: dirty
 		detach*: detach
-		process*: process
+		process*: --process
 	]
 	
 	sillica-lib: sl: slim/open/expose 'sillica none [
@@ -758,7 +758,7 @@ slim/register [
 						show window
 						window: plug: data: none
 					]
-				] [
+				][
 					stainless?: true ; always update when dirty.
 					window: win
 				] win/aspects/label
