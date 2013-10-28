@@ -1074,7 +1074,7 @@ slim/register [
 			][
 				;---
 				; makes the field's label always a string, when piped.
-				marble/aspects/label: liquify/fill !piped-to-string	marble/aspects/label
+				marble/aspects/label: liquify*/fill !piped-to-string	marble/aspects/label
 			]
 
 
