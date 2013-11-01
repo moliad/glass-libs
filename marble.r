@@ -1031,10 +1031,10 @@ slim/register [
 			;
 			; called just after gl-materialize()
 			;
-			; note materializtion occurs BEFORE the globs are linked, so allocate any
+			; note materialization occurs BEFORE the globs are linked, so allocate any
 			; material nodes it expects to link to here, not in setup-style().
 			;
-			; read the materialize() function notes above for more details, which also apply here.
+			; read the gl-materialize() function notes above for more details, which also apply here.
 			;-----------------
 			materialize: func [
 				marble

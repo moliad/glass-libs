@@ -120,16 +120,20 @@ slim/register [
 		aspects: context [
 			offset: -1x-1
 			
+			
 			;-        focused?:
 			; some scrollers can be highlighted
 			focused?: false
 			
+			
 			;-        pressed?:
 			selected?: false
 			
-			;-       hover?:
+			
+			;-        hover?:
 			hover?: none
-	
+			
+			
 			;-        color:
 			color: white * .8
 
