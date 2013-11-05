@@ -101,7 +101,7 @@ slim/register [
 			; managed positioning
 			;-        offset:
 			;
-			; when set to -1x-1, the offset will be manipulated by the default fasten code.
+			; the offset is manipulated by the default fasten code.
 			offset: -1x-1
 			
 			;-        color
