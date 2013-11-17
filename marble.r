@@ -259,7 +259,7 @@ slim/register [
 		; some of the aspects will be filled up by the layout algorythm, some might be setup by gl-specify() directly.
 		aspects: context [
 			;-       offset
-			offset: -1x-1   ; this is the relative to parent coordinates your marble is at.
+			offset: 10x10   ; this is the relative to parent coordinates your marble is at.
 
 			;-       size:
 			; this is the user controlable size of the marble, 
@@ -269,12 +269,13 @@ slim/register [
 			;
 			; note that if size has a -1 component then only that orientation is automatically
 			; calculated. (this allows you to scale one orientation based on the other's manually-set size)
-			size: -1x-1 ;40x40
+			size: -1x-1
 
 			;-       state:
 			state: none
 
 			;-       color:
+			; bg color
 			color: none
 			
 			;-       label-color:
@@ -352,13 +353,13 @@ slim/register [
 			fill-weight: 1x0
 			
 			;-       fill-accumulation:
-			; stores the accumulated fill-weight of this and previous marbles.
+			; stores the accumulated fill-weight of this and previous sibling marbles.
 			;
 			; allows you to identify the fill regions
 			;
-			;	regions  0  2 3   6  6  8
-			;	fill      2  1  3  0  2
-			;	gui      |--|-|---|..|--|
+			;	accumulation  0  2 3   6   6  8
+			;	fill           2  1  3   0  2
+			;	gui           |--|-|---|   |--|
 			;
 			; using regions fills all gaps and any decimal rounding errors are alleviated.
 			fill-accumulation: 0x0
@@ -388,7 +389,7 @@ slim/register [
 			; frames will usually collect the minimum space required by its marble collection.
 			;
 			; frame uses this, but its each marble's responsability to set it up.
-			min-dimension: 100x25
+			min-dimension: 100x21
 			
 			
 			
@@ -1080,16 +1081,19 @@ slim/register [
 				; the automatic label resizing is optional in marbles.
 				;
 				; current acceptible values are ['automatic | 'disabled]
-				if 'automatic = get in marble 'label-auto-resize-aspect [
+				either 'automatic = get in marble 'label-auto-resize-aspect [
 					link*/exclusive marble/material/min-dimension marble/aspects/size
 					link* marble/material/min-dimension marble/aspects/label
 					link* marble/material/min-dimension marble/aspects/font
 					link* marble/material/min-dimension marble/aspects/padding
 					;print "!!!!!!!!!!!!"
 					;ask "@"
+				][
+					link/reset  marble/material/dimension marble/aspects/size
 				]
 				
 				
+				;probe content marble/material/min-dimension
 				
 				; perform any style-related fastening.
 				marble/valve/fasten marble
@@ -1283,8 +1287,8 @@ slim/register [
 						| set data pair! (
 							pair-count: pair-count + 1
 							switch pair-count [
-								1 [	fill* marble/material/min-dimension data ]
-								2 [	set-aspect marble 'offset data ]
+								1 [	fill* marble/aspects/size data ]
+								2 [	fill* marble/aspects/offset data ]
 							]
 						) 
 						

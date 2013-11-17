@@ -213,7 +213,7 @@ slim/register [
 			
 			;-        origin:
 			; this is the origin we supply to our children
-			; the clip-region might also use this value or the position.
+			; a clip-region might also use this value or the position.
 			;
 			; normally, the origin is connected to border-size and offset
 			origin: 5x5
@@ -854,7 +854,6 @@ slim/register [
 					vprint "SPECIFYING WRAPPER!"
 					vprint content* frame/aspects/offset
 					link*/reset mtrl/position frame/aspects/offset
-					
 				]
 
 

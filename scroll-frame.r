@@ -289,7 +289,7 @@ slim/register [
 						) |
 						set data pair! (
 							vprint "group BORDER SIZE!" 
-							fill* group/material/border-size data
+							fill* group/material/min-dimension data
 						) |
 						set data block! (
 							vprint "setting PANE CONTENT"
