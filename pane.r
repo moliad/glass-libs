@@ -100,6 +100,7 @@ slim/register [
 			; this breaks up edges when trying to use pre-rendered anti-aliased images.
 			;
 			; in certain circumstances, you may want to change the bg color to something different.
+			;color: 0.0.0.255 ;theme-bg-color
 			color: theme-bg-color
 			
 			;-        h-offset:
@@ -110,8 +111,17 @@ slim/register [
 			
 			;-        backplane-clr:
 			; usually you don't need to touch this.
-			backplane-clr: 0.0.0.255
+			backplane-clr: none ;0.0.0.255
 			
+			;--------------------------
+			;-         backplane-draw-setup:
+			;
+			; this is linked in the backplane rasterizer to setup the rendering
+			;
+			; by default we just add an anti-aliasing instruction!
+			;--------------------------
+			backplane-draw-setup: [anti-alias #[false]]
+
 		]
 		
 		
@@ -167,6 +177,10 @@ slim/register [
 		;pixel-map: none
 		
 		
+		
+		
+		
+		
 		;-    valve []
 		valve: make valve [
 
@@ -216,7 +230,7 @@ slim/register [
 						
 						
 						; FG LAYER
-						position raster dimension backplane ;color frame-color
+						position raster dimension  ;color frame-color
 						;------
 						; uncomment following for debugging
 						;
@@ -400,6 +414,7 @@ slim/register [
 					mtrl/dimension
 					mtrl/translation
 					pane/aspects/color
+					pane/aspects/backplane-draw-setup ; makes the backplane aliased! 
 					pane/collect-in-frame/glob/layers/1
 				]
 				
