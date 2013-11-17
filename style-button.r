@@ -314,7 +314,6 @@ slim/register [
 				vprint event/action
 				button: event/marble
 				
-				
 				; set this to an event so that the event is re-queued
 				action-event: event
 				
@@ -393,8 +392,8 @@ slim/register [
 						event
 					]
 				][
-					vprint "IGNORED"
-					action-event: none
+					;vprint "IGNORED"
+					action-event: event
 				]
 				
 				if action-event [
