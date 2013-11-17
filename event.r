@@ -280,7 +280,7 @@ slim/register [
 	; things like modality are handled within the stream.
 	;
 	; the stream handlers are labeled, for easy manipulation and reference.
-	
+	;
 	; you must use the various handler functions to manipulate this.
 	stream: []
 	
@@ -1126,6 +1126,10 @@ slim/register [
 	][
 		;vin [{coordinates-to-offset()}]
 		;print ""
+		
+		;probe type? marble
+		;probe words-of marble
+		
 		;?? coordinates
 		position: content* marble/material/position
 		;?? position 
@@ -1557,7 +1561,6 @@ slim/register [
 					not event
 				]
 			]
-			
 		]
 		
 		
