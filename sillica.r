@@ -187,6 +187,7 @@ slim/register [
 	set 'shadow 0.0.0.128
 	set 'light-shadow 0.0.0.200
 	set 'theme-bg-color white * .85
+	set 'theme-hi-color gold
 	set 'theme-recess-color white * .6
 	set 'theme-window-color theme-bg-color
 	set 'theme-border-color white * .4
@@ -1932,7 +1933,6 @@ slim/register [
 		][
 			wrapper/valve/gl-specify wrapper spec stylesheet
 			wrapper/valve/gl-fasten wrapper
-
 		]
 		
 		; if the wrapper is a window viewport, we automatically call its show.
