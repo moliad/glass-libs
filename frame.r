@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glass frame"
 	file: %frame.r
-	version: 1.0.0
-	date: 2013-9-17
+	version: 1.0.1
+	date: 2013-11-20
 	author: "Maxim Olivier-Adlhoch"
 	purpose: {The core marble type which acts as a container for other marbles.}
 	web: http://www.revault.org/modules/frame.rmrk
@@ -12,7 +12,7 @@ REBOL [
 
 	; -- slim - Library Manager --
 	slim-name: 'frame
-	slim-version: 1.2.1
+	slim-version: 1.2.2
 	slim-prefix: none
 	slim-update: http://www.revault.org/downloads/modules/frame.r
 
@@ -36,7 +36,12 @@ REBOL [
 	;-  / history
 	history: {
 		v1.0.0 - 2013-09-17
-			-License change to Apache v2}
+			-License change to Apache v2
+			
+		v1.0.1 - 2013-11-20
+			- frames can now be activated so they end up receiving mouse events, just like normal marbles.
+			  this allows us to generate control zones which receive inputs (like drag and drop).
+	}
 	;-  \ history
 
 	;-  / documentation
@@ -53,6 +58,7 @@ REBOL [
 ]
 
 
+
 slim/register [
 	;-                                                                                                         .
 	;-----------------------------------------------------------------------------------------------------------
@@ -60,7 +66,7 @@ slim/register [
 	;- LIBS
 	;
 	;-----------------------------------------------------------------------------------------------------------
-	glob-lib: slim/open/expose 'glob none [!glob]
+	glob-lib: slim/open/expose 'glob none [!glob to-color]
 	liquid-lib: slim/open/expose 'liquid none [
 		!plug 
 		[liquify* liquify ] 
@@ -118,6 +124,15 @@ slim/register [
 			
 			;-        corner:
 			corner: 3
+			
+			;--------------------------
+			;-        active?:
+			;
+			; when hot, we will receive mouse events
+			;
+			; by default, frames do not attempt to interact with the event system
+			;--------------------------
+			active?: false
 			
 		]
 		
@@ -310,13 +325,27 @@ slim/register [
 ;						min-dimension !pair
 ;						content-dimension !pair
 ;						content-min-dimension !pair
+						active? !bool
 					]
 					
 					;-            glob/gel-spec:
 					gel-spec: [
 						; event backplane
-						none
-						[]
+						position dimension active?
+						[
+							(
+								either data/active?= [
+									compose/deep [
+										line-width 1 
+										pen none 
+										fill-pen (to-color gel/glob/marble/sid) 
+										box (data/position=) (data/position= + data/dimension= - 1x1)
+									]
+								][
+									[]
+								]
+							)
+						]
 						
 						; bg layer (ex: shadows, textures)
 						; keep in mind... this can be switched off for greater performance
@@ -333,11 +362,16 @@ slim/register [
 						[
 							; here we restore our parent's clip region  :-)
 							;clip (data/parent-clip-region=)
-							
+							(	
+								probe "--------------------"
+								probe extract data 2
+								[]
+							)
 							fill-pen (data/color=)
 							pen (data/frame-color=)
 							line-width 1
 							box (data/position=) (data/position= + data/dimension= - 1x1) (data/corner=)
+							
 							;------
 							; uncomment for debugging purposes.
 							;	line-width 1
@@ -842,7 +876,6 @@ slim/register [
 			;-----------------
 			gl-fasten: func [
 				frame
-				;/wrapper "fasten this frame as well"
 				/local marble previous-marble mtrl mmtrl
 			][
 				vin [{glass/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/gl-fasten()}]
@@ -874,17 +907,11 @@ slim/register [
 					mtrl/border-size
 				]
 
-				
-				
-				
-				
 				;-           -mutate
 				; mutate our materials
 				mtrl/origin/valve: epoxy-lib/!pair-add/valve
 				mtrl/content-dimension/valve: epoxy-lib/!pair-subtract/valve
 				mtrl/min-dimension/valve: epoxy-lib/!pair-add/valve
-				;vprint ["content-dimension: " content* mtrl/content-dimension ]
-
 				
 				switch frame/layout-method [
 					column [
@@ -966,7 +993,6 @@ slim/register [
 					
 					; accumulate all content.
 					link* mtrl/content-min-dimension mmtrl/min-dimension
-					
 					link* mtrl/content-spacing marble/aspects/offset
 					
 					
@@ -984,18 +1010,12 @@ slim/register [
 						mtrl/content-spacing
 					]
 					
-					
-					
-					
-					
 					; accumulate frame fill weight
 					link* mtrl/fill-weight mmtrl/fill-weight
-					
 					
 					;-------
 					; take care of collection MUTATIONS
 					mmtrl/fill-accumulation/valve: epoxy-lib/!pair-add/valve
-					
 					
 					switch frame/layout-method [
 						column [
@@ -1005,7 +1025,6 @@ slim/register [
 							mmtrl/dimension/valve: epoxy-lib/!vertical-fill-dimension/valve
 						]
 						
-						; 
 						row [
 							vprint "ROW!"
 							; position
@@ -1029,12 +1048,7 @@ slim/register [
 					; provide a usefull default wrapper dimension
 					; if size is later filled manually this link is ignored as usual by liquid .
 					link*/reset mtrl/dimension mtrl/min-dimension
-					;probe content* frame/material/min-dimension
-					;probe content* frame/material/dimension
-					;ask "!!!"
 				]
-
-				
 				
 				; perform any style-related fastening.
 				frame/valve/fasten frame
@@ -1074,7 +1088,6 @@ slim/register [
 				frame [object!]
 				spec [block!]
 				stylesheet [block! none!] "required so stylesheet propagates in marbles we create"
-				;/wrapper "this is a wrapper, call gl-fasten() accordingly"
 				/local marble item pane data marbles set-word pair-count tuple-count
 			][
 				vin [{glass/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/specify()}]
@@ -1087,30 +1100,28 @@ slim/register [
 				parse spec [
 					any [
 						copy data ['with block!] (
-							;print "SPECIFIED A WITH BLOCK"
-							;frame: make frame data/2
-							;liquid-lib/reindex-plug frame
-							
 							do bind/copy data/2 frame 
-							
-							
-							;probe marble/actions
-							;ask ""
-						) | 
-						'corner set data integer! (
-								fill* frame/aspects/corner data
-						) |
-						'tight (
+						)
+						
+						| 'corner set data integer! (
+							fill* frame/aspects/corner data
+						) 
+						
+						| 'activate (
+							fill* frame/aspects/active? true
+						)
+						
+						| 'tight (
 							frame/spacing-on-collect: 0x0
 							if block? frame/collection [
 								foreach marble frame/collection [
 									fill* marble/aspects/offset 0x0
 								]
 							]
-							;fill* frame/aspects/frame-color red
 							fill* frame/material/border-size 0x0
-						) |
-						set data tuple! (
+						) 
+						
+						| set data tuple! (
 							switch tuple-count [
 								1 [
 									vprint "frame COLOR!" 
@@ -1123,8 +1134,8 @@ slim/register [
 								]
 							]
 							tuple-count: tuple-count + 1
-						) |
-						set data pair! (
+						) 
+						| set data pair! (
 							switch pair-count [
 								1 [  
 									vprint "frame Border-size!" 
@@ -1137,8 +1148,8 @@ slim/register [
 							]
 							pair-count: pair-count + 1
 						
-						) |
-						set data block! (
+						)
+						| set data block! (
 							vprint "frame MARBLES!" 
 							pane: regroup-specification data
 							new-line/all pane true
@@ -1146,14 +1157,11 @@ slim/register [
 							pane: find pane block!
 							
 							if pane [
-								
 								; create & specify inner marbles
 								foreach item pane [
 									if set-word? set-word: pick item 1 [
 										; store the word to set, then skip it.
 										; after we use set on the returned marble.
-										;print "SET WORD!"
-										
 										item: next item
 									]
 									either marble: alloc-marble/using first item next item stylesheet [
@@ -1163,7 +1171,6 @@ slim/register [
 										; contextual decisions.
 										append marbles marble
 										marble/frame: frame
-										
 										marble/valve/gl-fasten marble
 										
 										if set-word? :set-word [
@@ -1179,15 +1186,11 @@ slim/register [
 								; add all children to our collection
 								frame/valve/accumulate frame marbles
 							]
-							
-							
 							; take this frame and fasten it. (might be empty)
 							; we remove this since it caused a double fastening of all frames!
 							; it was instead added to the layout function directly.
-							;frame/valve/gl-fasten frame
-							
-						) |
-						skip 
+						)
+						| skip 
 					]
 				]
 				
