@@ -39,7 +39,7 @@ REBOL [
 			-License change to Apache v2
 			
 		v1.0.1 - 2013-11-20
-			- frames can now be activated so they end up receiving mouse events, just like normal marbles.
+			- frames can now be activated (aspects/active?) so they end up receiving mouse events, just like normal marbles.
 			  this allows us to generate control zones which receive inputs (like drag and drop).
 	}
 	;-  \ history
