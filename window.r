@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glass window"
 	file: %window.r
-	version: 1.2.5
-	date: 2013-9-18
+	version: 1.2.6
+	date: 2013-11-20
 	author: "Maxim Olivier-Adlhoch"
 	purpose: {Default window manager for Glass, can be subclassed and changed.}
 	web: http://www.revault.org/modules/window.rmrk
@@ -12,7 +12,7 @@ REBOL [
 
 	; -- slim - Library Manager --
 	slim-name: 'window
-	slim-version: 1.2.1
+	slim-version: 1.2.2
 	slim-prefix: none
 	slim-update: http://www.revault.org/downloads/modules/window.r
 
@@ -36,7 +36,15 @@ REBOL [
 	;-  / history
 	history: {
 		v1.2.5 - 2013-09-18
-			-License changed to Apache v2}
+			-License changed to Apache v2
+
+		v1.2.6 - 2013-11-20
+			- added anti-aliasing to backplane rendering of window.
+			- overhauled the drag and drop event handling.
+			- added 'PRE-RELEASE mouse button event
+			- fixed MANY drag and drop related bugs.
+			- added 'DROP-BG event for releasing the mouse on background (window)
+	}
 	;-  \ history
 
 	;-  / documentation
@@ -69,6 +77,7 @@ REBOL [
 	}
 	;-  \ documentation
 ]
+
 
 
 
@@ -308,7 +317,7 @@ slim/register [
 		;
 		; for now only mouse down really makes sense.
 		;
-		; these events are queued by the trigger-events() function.
+		; these events are queued by the TRIGGER-EVENTS() function.
 		;
 		; note that not all events are managed by trigger-event right now... that might change.
 		;
@@ -579,10 +588,10 @@ slim/register [
 			; also, because the backplane is only rendered when mouse interaction is required,
 			; things like scrolling will not cause it to refresh automatically like the main layer would.
 			;-----------------
-			detect-marble: func [
+			detect-marble: funcl [
 				window [object!] 
 				coordinates [pair!]
-				/local size marble blk
+				;/local size marble blk
 			][
 				vin [{detect-marble()}]
 				marble: none
@@ -603,11 +612,7 @@ slim/register [
 						;v?? size
 						size: any [size 2x2]
 						window/backplane: make image! max size 2x2
-					
 					]
-					
-					
-					
 					
 					; make sure we don't rely on an out of date backplane, and correctly trap any errors
 					; which might occur while trying to rebuild it.
@@ -617,7 +622,8 @@ slim/register [
 					;-           render backplane
 					if block? blk: content* window/backplug [
 						;vprint "...................> Redraw-backplane"
-						draw window/backplane compose [pen none fill-pen (white) box 0x0 (size) (blk)]
+						draw  window/backplane compose [ pen none anti-alias (none) fill-pen (white) box 0x0 (size) (blk) ]
+						;set 'global-bkplane window/backplane
 					]
 				]
 				
@@ -626,12 +632,12 @@ slim/register [
 					; make sure coordinates are within backplane bounds
 					
 					coordinates: min window/backplane/size coordinates
-					;v?? coordinates
+					v?? coordinates
 					
 					; low-level image to plug 
 					marble: marble-at-coordinates window/backplane coordinates
 					
-					;if marble[vprobe marble/sid]
+					if marble[vprobe marble/sid]
 				]
 				vout
 				
@@ -805,6 +811,31 @@ slim/register [
 					
 					
 					;--------------------------
+					;-             dragged-marble:
+					;
+					; stores which marble is being dragged, usually the same as the selected marble.
+					; 
+					; the reason to have a separate select & drag reference, is that is allows us to detect when the
+					; selection becomes a drag (usually on the first SWIPE event).
+					;
+					; when the first swipe event is triggered, it generates a DRAG? event, which is responsible for
+					; for setting the 
+					;--------------------------
+					dragged-marble: none
+					
+					
+					;--------------------------
+					;-             drag-down-event:
+					;
+					; stores the event which starts the dragging, so we can
+					; store an origin of the marble being dragged or swipped
+					;--------------------------
+					drag-down-event: none
+					
+					
+										
+					
+					;--------------------------
 					;-             ctx-selected-marble:
 					;
 					; stores the marble which caused the context-press event.
@@ -831,20 +862,40 @@ slim/register [
 							event [object!]
 							/local window marble qevent  wglob oglob  data img size
 						][
-							vprint "WINDOW HANDLER"
+							vin "WINDOW HANDLER"
+							vprint event/action
+							
 							window: event/viewport
 							
-							vprint event/action
-							switch/default event/action [
+							rval: switch/default event/action [
 								;----------------------------------
 								;-                  -POINTER-MOVE
 								POINTER-MOVE [
 									;vprint "------------------->hovering mouse!"
 									;vprint event/coordinates
 									marble: detect-marble window event/coordinates
+									
+									
 									either selected-marble [
-										;vprint "SWIPE?"
+										vprint "dragging"
+										;print "SWIPE?"
 										; enter swipe mode
+										
+										;slim/vdump/ignore marble [valve OBSERVERS subordinates]
+										
+										either drag-down-event [
+											event: make event compose [
+												DRAG-ORIGIN: drag-down-event/drag-origin
+											]
+										][
+											if marble [
+												drag-down-event: event: make event compose [
+													DRAG-ORIGIN: (content marble/material/position)
+												]
+											]
+										]
+
+
 										event/marble: selected-marble
 										event/offset: coordinates-to-offset selected-marble event/coordinates
 
@@ -852,22 +903,22 @@ slim/register [
 											event/action: 'SWIPE
 										][
 											; enables temporary drag & drop solution
-											event: make event [drag-drop-candidate: marble]
+											event: make event compose [drag-drop-candidate: ( marble)]
 											event/action: 'DROP?
 										]
-										event
 									][
+										vprint "hovering"
+										
 										; enter hover mode
-										either same? hovered-marble marble [
-											;if marble/handle-hover [
-												event/action: 'HOVER
-												event/marble: hovered-marble
-												if event/marble [
-													event/offset: coordinates-to-offset hovered-marble event/coordinates
-												]
-												; don't consume event.
-												event
-											;]
+										either all [
+											same? hovered-marble marble 
+											
+										][
+											event/action: 'HOVER
+											event/marble: hovered-marble
+											if event/marble [
+												event/offset: coordinates-to-offset hovered-marble event/coordinates
+											]
 										][
 											if hovered-marble [
 												qevent: clone-event event
@@ -883,17 +934,26 @@ slim/register [
 												; event and be handled AFTER the dispatched event!
 												dispatch qevent
 											]
+											
+											;vprint "=============>"
 											if marble [
+;												unless in marble/valve 'style-name [
+;													global-plug: marble
+;												]
+												;slim/vdump/ignore marble [object!]
+												
 												event/action: 'START-HOVER
 												event/marble: marble
 												event/offset: coordinates-to-offset marble event/coordinates
 											]
+											;vprint "############"
 											; rememeber new marble (or lack of)
 											hovered-marble: marble
 											marble: none
-											event
+											;event
 										]
 									]
+									event
 								]
 								
 								
@@ -1056,7 +1116,6 @@ slim/register [
 									vprint "------------------->Moused button pressed!"
 									vprint event/coordinates
 									if object? marble: detect-marble window event/coordinates [
-									
 										; are these messages for ME?
 										either same? marble window [
 											vprint "========================================="
@@ -1090,35 +1149,68 @@ slim/register [
 								POINTER-RELEASE [
 									vprint "------------------->Moused button released!"
 									vprint event/coordinates
+									;-------
+									; some styles have curious dragging habbits which require some immediate
+									; fixup when they are released.
+									; 
+									; this event allows them to prepare the marble before the real
+									; pointer release occurs.
+									;---
+									if selected-marble [
+										dispatch clone-event/with event [
+											action: 'PRE-RELEASE 
+											marble: selected-marble
+										]
+									]
+									
 									marble: detect-marble window event/coordinates 
+									
+									either marble [
+										if in marble/aspects 'label [
+											vprobe content marble/aspects/label
+										]
+										vprobe content marble/material/position
+										vprobe content marble/material/dimension
+										vprobe content window/material/dimension
+										vprobe same? window marble
+									][
+										print "NO MARBLE"
+									]
+
 									; are these messages for a marble or the window?
 									either all [
 										selected-marble
-										not same? selected-marble window
+										not same? marble window
 									][
+										vprint "marble is not a window"
 										;---------
 										; pointer was released from a marble selection
 										event/offset: coordinates-to-offset selected-marble event/coordinates
 										event/marble: selected-marble
 										either marble <> selected-marble [
+											vprint "marble isn't the selected marble"
 											; give another marble the chance to refresh if the mouse is over it.
 											dispatch clone-event/with event [
 												action: 'END-HOVER 
 											]
-											dispatch qevent: clone-event/with event compose [
-												action: 'START-HOVER 
-												marble: (marble)
-												offset: (if marble [coordinates-to-offset marble event/coordinates])
-											]
+											vprint "end hover done"
 											
 											either marble [
+												vprint "There is a marble"
+												dispatch qevent: clone-event/with event compose [
+													action: 'START-HOVER 
+													marble: (marble)
+													offset: (if marble [coordinates-to-offset marble event/coordinates])
+												]
+												
+												
 												;--------
 												; we released mouse over another marble
 												;--------
 												
 												; expand event
-												event: make event [
-													dropped-on: marble
+												event: make event compose [
+													dropped-on: (marble)
 													dropped-offset: qevent/offset ; saves processing
 												]
 												
@@ -1137,6 +1229,16 @@ slim/register [
 											event/action: 'RELEASE
 										]
 									][
+										if selected-marble [
+											dispatch clone-event/with event compose [
+												;---
+												; there aren't many styles which need this event.
+												action: 'DROP-BG 
+												marble: selected-marble
+												window: (window)
+											]
+										]
+
 										;---------
 										; pointer was released from a window selection
 										vprint "========================================="
@@ -1146,6 +1248,8 @@ slim/register [
 										event: none
 									]
 									selected-marble: none
+									drag-down-event: none
+
 									event
 								]
 								
@@ -1452,6 +1556,9 @@ slim/register [
 								; leave for next handler
 								event
 							]
+							
+							vout
+							rval
 						] window
 					
 				] ; end of event handler context
