@@ -361,12 +361,6 @@ slim/register [
 						;------
 						[
 							; here we restore our parent's clip region  :-)
-							;clip (data/parent-clip-region=)
-							(	
-								probe "--------------------"
-								probe extract data 2
-								[]
-							)
 							fill-pen (data/color=)
 							pen (data/frame-color=)
 							line-width 1
