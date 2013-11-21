@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glaze"
 	file: %glaze.r
-	version: 1.0.0
-	date: 2013-9-18
+	version: 1.0.2
+	date: 2013-11-20
 	author: "Maxim Olivier-Adlhoch"
 	purpose: "The default stylesheet for GLASS."
 	web: http://www.revault.org/modules/glaze.rmrk
@@ -37,6 +37,12 @@ REBOL [
 	history: {
 		v1.0.0 - 2013-09-18
 			-License changed to Apache v2
+	
+		v1.0.1 - 2013-11-05
+			-Added board frame to the stylesheet.
+			
+		v1.0.2 - 2013-11-20
+			-Added CV style
 	}
 	;-  \ history
 
@@ -61,6 +67,7 @@ REBOL [
 	}
 	;-  \ documentation
 ]
+
 
 
 
@@ -103,6 +110,12 @@ slim/register [
 	icon: slim/open 'style-icon-button none
 	image: slim/open 'style-image none
 	
+	slim/open/expose 'frame-board none [!board]
+	
+	; manipulators
+	slim/open/expose 'style-cv none [!cv]
+	
+	
 	; build the default glass stylesheet
 	
 	;- FRAMES
@@ -116,6 +129,8 @@ slim/register [
 	
 	sl/collect-style scroll-frm/!scroll-frame
 	sl/collect-style pane/!pane
+	
+	sl/collect-style !board
 	
 	;-      vcavity
 	sl/collect-style/as vcavity: make column [
@@ -729,6 +744,11 @@ slim/register [
 			;no-label stiff  
 		]
 	] 'check-mark
+	
+	
+	;- MANIPULATOR styles
+	sl/collect-style !cv
+	
 	
 
 	;- COMPLEX styles
