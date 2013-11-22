@@ -74,6 +74,7 @@ slim/register [
 		link*: link
 		unlink*: unlink
 		dirty*: dirty
+		attach*: attach
 	]
 	
 	
@@ -414,6 +415,166 @@ slim/register [
 			]
 			
 						
+
+			;-----------------
+			;-        specify()
+			;
+			; parse a specification block during initial layout operation
+			;
+			; can also be used at run-time to set values in the aspects block directly by the application.
+			;
+			; but be carefull, as some attributes are very heavy to use like frame sub-marbles, which will 
+			; effectively trash their content and rebuild the content again, if used blindly, with the 
+			; same spec block over and over.
+			;
+			; the marble we return IS THE MARBLE USED IN THE LAYOUT
+			;
+			; so the the spec block can be used to do many wild things, even change the 
+			; marble type or instance on the fly!!
+			;
+			; we now call the dialect() function which allows one to reuse the internal specify
+			; dialect directly.
+			;
+			; dialect will simply be called after specify is done.
+			;-----------------
+			specify: funcl [
+				marble [object!]
+				spec [block!]
+				stylesheet [block!] "Required so stylesheet propagates in marbles we create"
+				;/local data pair-count tuple-count tmp
+			][
+				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/specify()}]
+				
+				pair-count: 0
+				tuple-count: 0
+				blk-count: 0
+				parse spec [
+					any [
+						copy data ['with block!] (
+							;print "SPECIFIED A WITH BLOCK"
+							;marble: make marble data/2
+							;liquid-lib/reindex-plug marble
+							do bind/copy data/2 marble 
+							
+						) 
+						
+						| 'stiff (
+							fill* marble/material/fill-weight 0x0
+						) 
+						
+						| 'stretch set data pair! (
+							fill* marble/material/fill-weight data
+						) 
+						
+						| 'left (
+							fill* marble/aspects/align 'WEST
+						) 
+						
+						| 'right (
+							fill* marble/aspects/align 'EAST
+						) 
+						
+						| 'padding set data [pair! | integer!] (
+							fill* marble/aspects/padding 1x1 * data
+						) 
+						
+						
+						;-----
+						; attach a plug to ourself (keeping our value, if any).
+						;
+						; the net result is that he and we will be using OUR pipe server
+						;-----
+						| 'attach set client [object! | word!] (
+							if word? client [client: get client]
+							if liquid-lib/plug? client [
+								aspect: marble/valve/get-default-aspect marble
+								
+								;----
+								; get the aspect's current data, so we can put it back
+								value-backup: content aspect
+								
+								attach* client aspect
+								
+								; sometimes, attaching clears the data, 
+								; filling it up ensures it stays there and also generates a dirty propagation!
+								fill aspect value-backup
+							]
+						) 
+						
+						;-----
+						; attach ourself to another plug (keeping its data, if any).
+						;
+						; the net result is that he and we will be using ITS pipe server
+						;-----
+						| 'attach-to set pipe [object! | word!] (
+							if word? pipe [pipe: get pipe]
+							
+							if liquid-lib/plug? pipe [
+								aspect: marble/valve/get-default-aspect marble
+
+								value-backup: content pipe
+								attach* aspect pipe
+								
+								fill pipe value-backup
+								
+							]
+						)
+						
+						| set data [integer!] (
+							fill* marble/aspects/corner data
+						) 
+						
+						| set data tuple! (
+							tuple-count: tuple-count + 1
+							switch tuple-count [
+								1 [set-aspect marble 'label-color data]
+								2 [set-aspect marble 'color data]
+							]
+							
+						) 
+						
+						| set data pair! (
+							pair-count: pair-count + 1
+							switch pair-count [
+								1 [	fill* marble/material/min-dimension data ] ; deprecated
+								;1 [	fill* marble/aspects/size data ]
+								2 [	fill* marble/aspects/offset data ]
+							]
+						) 
+						
+						| set data string! (
+							set-aspect marble 'label data
+						) 
+						
+						| set data block! (
+							blk-count: blk-count + 1
+							; an action (by default)
+							if object? get in marble 'actions [
+								switch blk-count [
+									1 [
+										marble/actions: make marble/actions [action: make function! [event] bind/copy data marble]
+									]
+									
+									2 [
+										marble/actions: make marble/actions [alt-action: make function! [event] bind/copy data marble]
+									]
+								]
+							]
+						) 
+						
+						| skip 
+					]
+				]
+				
+				; give custom marbles, a chance to setup their own dialect or alter this one.
+				marble/valve/dialect marble spec stylesheet
+				
+				vout
+				;ask ""
+				marble
+			]
+			
+
 
 			;-----------------
 			;-        setup-style()
