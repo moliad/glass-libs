@@ -613,6 +613,8 @@ slim/register [
 								prim-label/pad data/label= data/position= + 1x0 data/dimension= data/label-color= data/font= data/align= data/padding=
 							)
 							
+							;---
+							; the following fixes problem with AGG texts with spaces breaking up the pen color of any graphic which follows
 							box 100000x100000 1000001x1000001
 							
 ;							line-width 1
@@ -903,11 +905,11 @@ slim/register [
 				;print event/action
 				switch event/action [
 					start-hover [
-						fill* event/marble/aspects/hover? true
+						;fill* event/marble/aspects/hover? true
 					]
 					
 					end-hover [
-						fill* event/marble/aspects/hover? false
+						;fill* event/marble/aspects/hover? false
 					]
 				]
 				do-event event
@@ -1287,6 +1289,7 @@ slim/register [
 						| set data pair! (
 							pair-count: pair-count + 1
 							switch pair-count [
+;								1 [	fill* marble/material/min-dimension data ] ; deprecated
 								1 [	fill* marble/aspects/size data ]
 								2 [	fill* marble/aspects/offset data ]
 							]
