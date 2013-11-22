@@ -404,8 +404,8 @@ slim/register [
 						| set data pair! (
 							switch pair-count [
 								1 [  
-									print "min-dimension!" 
-									probe type? frame
+									;print "min-dimension!" 
+									;probe type? frame
 									fill* frame/material/min-dimension data
 								]
 								
