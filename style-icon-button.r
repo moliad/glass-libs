@@ -452,7 +452,15 @@ FEFFFFFF
 			; the actual image being shown, will usually be a link to one of the various icon aspects (which are images)
 			image: none
 			
+			
+			;--------------------------
+			;-             auto-size:
+			;
+			; automatically calculated size based on icons, text,  padding, etc.
+			;--------------------------
+			auto-size: none
 		]
+		
 		
 		;-    label-auto-resize-aspect:
 		; this will resize the width based on the text, automatically.
@@ -659,55 +667,7 @@ FEFFFFFF
 			]
 			
 
-			
-			;-----------------
-			;-        materialize()
-			; style-oriented public materialization.
-			;
-			; called just after gl-materialize()
-			;
-			; note materializtion occurs BEFORE the globs are linked, so allocate any
-			; material nodes it expects to link to here, not in setup-style().
-			;
-			; read the materialize() function notes above for more details, which also apply here.
-			;-----------------
-			materialize: funcl [
-				icon
-			][
-				mat: icon/material
-				aspect: icon/aspects 
-			
-				vin [{glass/!} uppercase to-string icon/valve/style-name {[} icon/sid {]/materialize()}]
-				mat/icon-size: liquify* epoxy/!image-size
-				mat/icon-size/mode: 'xy ; we only want to add height to the button.
-				
-				mat/icon-size/resolve-links?: 'LINK-BEFORE ; should make the icon receptive to both links or fills
-				
-				
-				
-				mat/image: liquify*/link !icon-chooser reduce [
-					aspect/selected?
-					aspect/hover?
-					aspect/engaged?
-					
-					aspect/icon 
-					aspect/engaged-icon
-					aspect/hover-icon
-					aspect/selected-icon
-				]
-				
-				; swap the allocated min-dimension for label-size
-				mat/label-size: icon/material/min-dimension
-				
-				; allocate a new min-dimension which will be linked to other space requirements.
-				mat/min-dimension: liquify* epoxy/!pair-add
-				mat/inside-size: liquify* epoxy/!vertical-accumulate
-				
-				mat/icon-spacing: liquify* glue-lib/!gate
-				mat/icon-spacing/default-value: 0x0
-				
-				vout
-			]
+
 			
 
 			
@@ -911,6 +871,60 @@ FEFFFFFF
 			]
 			
 
+			
+			;-----------------
+			;-        materialize()
+			; style-oriented public materialization.
+			;
+			; called just after gl-materialize()
+			;
+			; note materializtion occurs BEFORE the globs are linked, so allocate any
+			; material nodes it expects to link to here, not in setup-style().
+			;
+			; read the materialize() function notes above for more details, which also apply here.
+			;-----------------
+			materialize: funcl [
+				icon
+			][
+				mat: icon/material
+				aspect: icon/aspects 
+			
+				vin [{glass/!} uppercase to-string icon/valve/style-name {[} icon/sid {]/materialize()}]
+				mat/icon-size: liquify* epoxy/!image-size
+				mat/icon-size/mode: 'xy ; we only want to add height to the button.
+				
+				mat/icon-size/resolve-links?: 'LINK-BEFORE ; should make the icon receptive to both links or fills
+				
+				
+				
+				mat/image: liquify*/link !icon-chooser reduce [
+					aspect/selected?
+					aspect/hover?
+					aspect/engaged?
+					
+					aspect/icon 
+					aspect/engaged-icon
+					aspect/hover-icon
+					aspect/selected-icon
+				]
+				
+				; swap the allocated min-dimension for label-size
+				mat/label-size: icon/material/min-dimension
+				
+				; allocate a new min-dimension which will be linked to other space requirements.
+				mat/min-dimension: liquify* epoxy/!pair-max
+				mat/inside-size: liquify* epoxy/!vertical-accumulate
+				
+				mat/icon-spacing: liquify* glue-lib/!gate
+				mat/icon-spacing/default-value: 0x0
+				
+				mat/auto-size: liquify* epoxy/!pair-add
+				
+				vout
+			]
+			
+			
+			
 			;-----------------
 			;-        gl-fasten()
 			; here we replace the gl-fasten, since we had to move min-dimension to some special setup
@@ -924,7 +938,7 @@ FEFFFFFF
 				;
 				; current acceptible values are ['automatic | 'disabled]
 				if 'automatic = get in marble 'label-auto-resize-aspect [
-					link*/exclusive marble/material/label-size marble/aspects/size
+					link*/exclusive marble/material/label-size liquify/fill !plug -1x-1 ; marble/aspects/size
 					link* marble/material/label-size marble/aspects/label
 					link* marble/material/label-size marble/aspects/font
 					;link* marble/material/label-size marble/aspects/padding
@@ -944,12 +958,14 @@ FEFFFFFF
 			; style-oriented public fasten call.  called at the end of gl-fasten()
 			;
 			;-----------------
-			fasten: func [
+			fasten: funcl [
 				icon
 			][
 				vin [{glass/!} uppercase to-string icon/valve/style-name {[} icon/sid {]/fasten()}]
 				; this causes massive slow down, since each icon state
 				; causes a complete redraw of the backplate.
+				mat: icon/material
+				apct: icon/aspects
 				
 				fill* icon/material/icon-size content* icon/material/image
 				
@@ -957,14 +973,9 @@ FEFFFFFF
 				link* icon/material/icon-spacing icon/aspects/icon-spacing
 				link* icon/material/icon-spacing icon/aspects/label
 				
-				link* icon/material/inside-size icon/material/icon-size
-				link* icon/material/inside-size icon/material/icon-spacing
-				link* icon/material/inside-size icon/material/label-size
-				
-				link* icon/material/min-dimension icon/material/inside-size
-				link* icon/material/min-dimension icon/aspects/padding
-				link* icon/material/min-dimension icon/aspects/padding
-				
+				link* mat/inside-size   reduce [ mat/icon-size  mat/icon-spacing  mat/label-size ]
+				link* mat/auto-size     reduce [ mat/inside-size  apct/padding  apct/padding ]
+				link* mat/min-dimension reduce [mat/auto-size apct/size]
 				vout
 			]
 			
