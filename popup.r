@@ -339,7 +339,7 @@ slim/register [
 						
 						vprint "--->"
 						if object? popup/overlay-glob/frame [
-							print "UNLINK FROM SCROLLFRAME!"
+							;print "UNLINK FROM SCROLLFRAME!"
 							popup/overlay-glob/frame/valve/gl-discard popup/overlay-glob/frame popup/overlay-glob
 						]
 						

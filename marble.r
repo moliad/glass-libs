@@ -1088,10 +1088,9 @@ slim/register [
 					link* marble/material/min-dimension marble/aspects/label
 					link* marble/material/min-dimension marble/aspects/font
 					link* marble/material/min-dimension marble/aspects/padding
-					;print "!!!!!!!!!!!!"
-					;ask "@"
 				][
 					link/reset  marble/material/dimension marble/aspects/size
+					;link/reset  marble/material/min-dimension marble/aspects/size
 				]
 				
 				

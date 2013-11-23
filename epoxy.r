@@ -993,11 +993,10 @@ slim/register [
 					str: mold plug/liquid
 					blk: make-bulk 1
 								
-					append blk probe parse/all str "^/"
+					append blk parse/all str "^/"
 
 					plug/liquid: blk
 				]
-				;print "."
 				vout
 				false
 			]

@@ -1174,7 +1174,7 @@ slim/register [
 										vprobe content window/material/dimension
 										vprobe same? window marble
 									][
-										print "NO MARBLE"
+										vprint "NO MARBLE"
 									]
 
 									; are these messages for a marble or the window?
