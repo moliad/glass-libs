@@ -116,7 +116,7 @@ slim/register [
 	!droplist: make marble-lib/!marble [
 	
 		;-    Aspects[ ]
-		aspects: context [
+		aspects: make aspects [
 		
 		
 			;-        offset:
