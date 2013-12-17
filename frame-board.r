@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "board | manual layout frame"
 	file: %frame-board.r
-	version: 1.0.1
-	date: 2013-11-20
+	version: 1.0.2
+	date: 2013-12-17
 	author: "Maxim Olivier-Adlhoch"
 	purpose: {A frame which doesn't do layout so you can move things around manually.}
 	web: http://www.revault.org/modules/frame-board.rmrk
@@ -40,7 +40,9 @@ REBOL [
 	
 		v1.0.1 - 2013-11-20
 			-fully functional style, uses updates to window style v1.2.6
-	}
+	
+		v1.0.2 - 2013-12-17
+			-frame-color aspect replaced to border-color}
 	;-  \ history
 
 	;-  / documentation
@@ -53,6 +55,7 @@ REBOL [
 	}
 	;-  \ documentation
 ]
+
 
 
 
@@ -169,7 +172,7 @@ slim/register [
 						position !pair (random 200x200)
 						dimension !pair (300x300)
 						color !color
-						frame-color  !color (random white)
+						border-color  !color (random white)
 						corner !integer
 						; uncomment to debug
 ;						clip-region !block ([0x0 1000x1000])
@@ -190,7 +193,7 @@ slim/register [
 						
 						
 						; FG LAYER
-						position dimension color frame-color corner
+						position dimension color border-color corner
 						;------
 						; uncomment following for debugging
 						;
@@ -201,7 +204,7 @@ slim/register [
 							;clip (data/parent-clip-region=)
 							
 							fill-pen (data/color=)
-							pen (data/frame-color=)
+							pen (data/border-color=)
 							line-width 1
 							box (data/position=) (data/position= + data/dimension= - 1x1) (data/corner=)
 							;------
@@ -382,7 +385,7 @@ slim/register [
 									fill* marble/aspects/offset 0x0
 								]
 							]
-							;fill* frame/aspects/frame-color red
+							;fill* frame/aspects/border-color red
 							fill* frame/material/border-size 0x0
 						)
 						
@@ -391,7 +394,7 @@ slim/register [
 								1 [
 									vprint "frame COLOR!" 
 									vprint data
-									fill* frame/aspects/frame-color data
+									fill* frame/aspects/border-color data
 								]
 								
 								2 [
