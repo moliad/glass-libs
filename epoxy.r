@@ -287,6 +287,9 @@ slim/register [
 	;-     !pair-add:
 	!pair-add: make !pair-op [valve: make valve [type: '!pair-add]]
 	
+	;-     !pair-mult:
+	!pair-mult: make !pair-op [valve: make valve [type: '!pair-mult operation: :multiply]]
+	
 	
 	;-     !pair-subtract:
 	!pair-subtract: make !pair-op [valve: make valve [type: '!pair-subtract operation: :subtract]]
