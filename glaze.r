@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glaze"
 	file: %glaze.r
-	version: 1.0.2
-	date: 2013-11-20
+	version: 1.0.3
+	date: 2013-12-17
 	author: "Maxim Olivier-Adlhoch"
 	purpose: "The default stylesheet for GLASS."
 	web: http://www.revault.org/modules/glaze.rmrk
@@ -12,7 +12,7 @@ REBOL [
 
 	; -- slim - Library Manager --
 	slim-name: 'glaze
-	slim-version: 1.2.1
+	slim-version: 1.2.2
 	slim-prefix: none
 	slim-update: http://www.revault.org/downloads/modules/glaze.r
 
@@ -43,7 +43,9 @@ REBOL [
 			
 		v1.0.2 - 2013-11-20
 			-Added CV style
-	}
+	
+		v1.0.3 - 2013-12-17
+			-frame-color aspect replaced to border-color in all marble styles which had it.}
 	;-  \ history
 
 	;-  / documentation
@@ -67,6 +69,7 @@ REBOL [
 	}
 	;-  \ documentation
 ]
+
 
 
 
@@ -122,9 +125,9 @@ slim/register [
 	column: make frame/!frame [layout-method: 'column]
 	row: make frame/!frame [layout-method: 'row]
 	
-	sl/collect-style/as make column [aspects: make aspects [frame-color: none]] 'column
+	sl/collect-style/as make column [aspects: make aspects [border-color: none]] 'column
 	sl/collect-style/as make column [aspects: make aspects []] 'vframe
-	sl/collect-style/as make row [aspects: make aspects [frame-color: none] ] 'row
+	sl/collect-style/as make row [aspects: make aspects [border-color: none] ] 'row
 	sl/collect-style/as make row [aspects: make aspects []] 'hframe
 	
 	sl/collect-style scroll-frm/!scroll-frame
@@ -139,8 +142,8 @@ slim/register [
 			;-               color:
 			color: none ; default is to use bg
 			
-			;-               frame-color:
-			frame-color: theme-border-color
+			;-               border-color:
+			border-color: theme-border-color
 		]
 
 		;-           material[]
@@ -165,7 +168,7 @@ slim/register [
 				parse spec [
 					any [
 						'no-border (
-							fill* marble/aspects/frame-color none
+							fill* marble/aspects/border-color none
 						)
 						
 						| skip
@@ -183,7 +186,7 @@ slim/register [
 						position !pair 
 						dimension !pair
 						color !color (blue)
-						frame-color  !color 
+						border-color  !color 
 					]
 					
 					;-            glob/gel-spec:
@@ -197,9 +200,9 @@ slim/register [
 						;[]
 						
 						; fg layer
-						 position dimension color frame-color ;clip-region parent-clip-region
+						 position dimension color border-color ;clip-region parent-clip-region
 						[
-							(sl/prim-cavity/all/colors data/position= data/dimension= - 1x1 data/color= data/frame-color=)
+							(sl/prim-cavity/all/colors data/position= data/dimension= - 1x1 data/color= data/border-color=)
 			
 						]
 						
@@ -231,8 +234,8 @@ slim/register [
 			size: none
 			
 			
-			;-               frame-color:
-			frame-color: theme-border-color
+			;-               border-color:
+			border-color: theme-border-color
 		]
 
 		;-           material[]
@@ -255,7 +258,7 @@ slim/register [
 						position !pair 
 						dimension !pair
 						color !color (blue)
-						frame-color  !color
+						border-color  !color
 						corner !integer
 					]
 					
@@ -270,7 +273,7 @@ slim/register [
 						;[]
 						
 						; fg layer
-						 position dimension color frame-color corner ;clip-region parent-clip-region
+						 position dimension color border-color corner ;clip-region parent-clip-region
 						[
 							pen none
 ;							
@@ -309,8 +312,8 @@ slim/register [
 			size: none
 			
 			
-			;-               frame-color:
-			frame-color: theme-border-color
+			;-               border-color:
+			border-color: theme-border-color
 		]
 
 		;-           material[]
@@ -333,7 +336,7 @@ slim/register [
 						position !pair 
 						dimension !pair
 						color !color (blue)
-						frame-color  !color
+						border-color  !color
 						corner !integer
 					]
 					
@@ -348,11 +351,11 @@ slim/register [
 						;[]
 						
 						; fg layer
-						 position dimension color frame-color corner 
+						 position dimension color border-color corner 
 						[
 							pen none
 							line-width 1
-							pen (any [data/frame-color= theme-frame-color])
+							pen (any [data/border-color= theme-border-color])
 							fill-pen white
 							box (data/position=) (data/position= + data/dimension= - 1x1)
 							(sl/prim-glass (data/position=) (data/position= + data/dimension= - 1x1) theme-color 205)
@@ -377,8 +380,8 @@ slim/register [
 			;-               color:
 			color: none ; default is to use bg
 			
-			;-               frame-color:
-			frame-color: theme-border-color
+			;-               border-color:
+			border-color: theme-border-color
 		]
 
 		;-           material[]
@@ -397,7 +400,7 @@ slim/register [
 						position !pair 
 						dimension !pair
 						color !color (blue)
-						frame-color  !color 
+						border-color  !color 
 					]
 					
 					;-            glob/gel-spec:
@@ -411,7 +414,7 @@ slim/register [
 						;[]
 						
 						; fg layer
-						position dimension color frame-color ;clip-region parent-clip-region
+						position dimension color border-color ;clip-region parent-clip-region
 						[
 							pen none
 							; top shadow
@@ -422,7 +425,7 @@ slim/register [
 							box (data/position=) (data/position= + data/dimension= - 1x1) 3
 							
 							fill-pen none
-							pen (any [data/frame-color= theme-frame-color])
+							pen (any [data/border-color= theme-border-color])
 							line-width 1
 							box (data/position=) (data/position= + data/dimension= - 1x1) 3
 						]
