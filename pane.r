@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glass Pane"
 	file: %pane.r
-	version: 1.0.0
-	date: 2010-6-20
+	version: 1.0.1
+	date: 2013-12-17
 	author: "Maxim Olivier-Adlhoch"
 	purpose: "A Clipping pane frame."
 	web: http://www.revault.org/modules/pane.rmrk
@@ -12,14 +12,14 @@ REBOL [
 
 	; -- slim - Library Manager --
 	slim-name: 'pane
-	slim-version: 1.2.1
+	slim-version: 1.2.2
 	slim-prefix: none
 	slim-update: http://www.revault.org/downloads/modules/pane.r
 
 	; -- Licensing details  --
-	copyright: "Copyright © 2010 Maxim Olivier-Adlhoch"
+	copyright: "Copyright © 2013 Maxim Olivier-Adlhoch"
 	license-type: "Apache License v2.0"
-	license: {Copyright © 2010 Maxim Olivier-Adlhoch
+	license: {Copyright © 2013 Maxim Olivier-Adlhoch
 
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.
@@ -36,7 +36,11 @@ REBOL [
 	;-  / history
 	history: {
 		v1.0.0 - 2013-09-17
-			-License changed to Apache v2}
+			-License changed to Apache v2
+
+		v1.0.1 - 2013-12-17
+			-frame-color aspect replaced to border-color
+	}
 	;-  \ history
 
 	;-  / documentation
@@ -52,6 +56,7 @@ REBOL [
 	}
 	;-  \ documentation
 ]
+
 
 
 
@@ -205,7 +210,7 @@ slim/register [
 						position !pair (random 200x200)
 						dimension !pair (300x300)
 						color !color
-						;frame-color  !color (random white)
+						;border-color  !color (random white)
 						; uncomment to debug
 ;						clip-region !block ([0x0 1000x1000])
 ;						min-dimension !pair
@@ -230,7 +235,7 @@ slim/register [
 						
 						
 						; FG LAYER
-						position raster dimension  ;color frame-color
+						position raster dimension  ;color border-color
 						;------
 						; uncomment following for debugging
 						;
