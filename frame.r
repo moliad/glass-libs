@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glass frame"
 	file: %frame.r
-	version: 1.0.1
-	date: 2013-11-20
+	version: 1.0.2
+	date: 2013-12-17
 	author: "Maxim Olivier-Adlhoch"
 	purpose: {The core marble type which acts as a container for other marbles.}
 	web: http://www.revault.org/modules/frame.rmrk
@@ -41,7 +41,16 @@ REBOL [
 		v1.0.1 - 2013-11-20
 			- frames can now be activated (aspects/active?) so they end up receiving mouse events, just like normal marbles.
 			  this allows us to generate control zones which receive inputs (like drag and drop).
-	}
+	
+		v1.0.2 - 2013-12-17
+			-Added fill weight scaling allow you to manipulate the relative weight 
+			 of one frame wrt another within their parent frame. (scaling to 0 effectively
+			 cancels resizing for the frame!)
+			-added frame stiffness control in dialect (using fill weight scaling)
+			-added manual frame size adjustment
+			-replaced frame-color to border-color as to follow the new attribute in the core marble
+			
+}
 	;-  \ history
 
 	;-  / documentation
@@ -56,6 +65,7 @@ REBOL [
 	}
 	;-  \ documentation
 ]
+
 
 
 
@@ -87,7 +97,7 @@ slim/register [
 		prim-x
 		prim-label
 	]
-	epoxy-lib: slim/open/expose 'epoxy none [!box-intersection]
+	epoxy-lib: slim/open/expose 'epoxy none [!box-intersection !pair-mult]
 	
 	marble-lib: slim/open 'marble none
 	
@@ -114,8 +124,8 @@ slim/register [
 			color: none ;theme-bg-color
 			
 			
-			;-        frame-color
-			frame-color: theme-border-color
+			;-        border-color
+			border-color: theme-border-color
 			
 			
 			;-        disable?:
@@ -133,6 +143,27 @@ slim/register [
 			; by default, frames do not attempt to interact with the event system
 			;--------------------------
 			active?: false
+
+			;--------------------------
+			;-        fill-scale:
+			;
+			; this multiplies the values of fill-weight and fill-accumulation, allowing you to allocate more
+			; space to the frame, or completely disable its resizing (by setting 0 in X AND/OR Y).
+			;--------------------------
+			fill-scale: 1x1
+			
+			
+			;--------------------------
+			;-        dimension-adjust:
+			;
+			; allows us to adjust the min size manually. this forces us to receive more space
+			; which is evenly spread out to children.
+			;
+			; it may also cause our children to shrink if a negative adjustment is required.
+			;
+			; this is a manual hack which may cause strange side-effects in some layouts, use with caution.
+			;--------------------------
+			dimension-adjust: 0x0
 			
 		]
 		
@@ -160,11 +191,31 @@ slim/register [
 			
 			
 
+			;--------------------------
+			;-        content-fill-weight:
+			;
+			; fill weight of content inside of frame
+			;
+			; is used to rescale content.
+			;
+			; frames inherit & accumulate these values, marbles supply them.
+			;--------------------------
+			content-fill-weight: none
+			
+			
+			
 			;-        fill-weight:
 			; fill up / compress extra space in either direction (independent), but don't initiate resising
 			;
-			; frames inherit & accumulate these values, marbles supply them.
+			; this is our own adjusted fill-weight, used for our parents to allocate extra-space
+			; to us and our children.
+			;
+			; this value is basically our content fill-weight multiplied by fill-scale.
+			;
+			; it allows us to get more extra space than our brethren, or none, if set to 0x0.
 			fill-weight: 0x0
+			
+			
 			
 			
 			;-        fill-accumulation:
@@ -178,6 +229,8 @@ slim/register [
 			;
 			; using regions fills all gaps and any decimal rounding errors are alleviated.
 			fill-accumulation: 0x0
+			
+			
 			
 			
 			
@@ -318,7 +371,7 @@ slim/register [
 						position !pair (random 200x200)
 						dimension !pair (300x300)
 						color !color
-						frame-color  !color (random white)
+						border-color  !color (random white)
 						corner !integer
 						; uncomment to debug
 ;						clip-region !block ([0x0 1000x1000])
@@ -353,7 +406,7 @@ slim/register [
 						
 						
 						; FG LAYER
-						position dimension color frame-color corner
+						position dimension color border-color corner
 						;------
 						; uncomment following for debugging
 						;
@@ -362,7 +415,7 @@ slim/register [
 						[
 							; here we restore our parent's clip region  :-)
 							fill-pen (data/color=)
-							pen (data/frame-color=)
+							pen (data/border-color=)
 							line-width 1
 							box (data/position=) (data/position= + data/dimension= - 1x1) (data/corner=)
 							
@@ -410,7 +463,7 @@ slim/register [
 						dimension !pair (300x300)
 						disable? !bool
 						;color !color
-						;frame-color  !color (random white)
+						;border-color  !color (random white)
 						;clip-region !block ([0x0 1000x1000])
 						;parent-clip-region !block ([0x0 1000x1000])
 					]
@@ -435,7 +488,7 @@ slim/register [
 						;[]
 						
 						; fg layer
-						; position dimension color frame-color clip-region parent-clip-region
+						; position dimension color border-color clip-region parent-clip-region
 						disable? position dimension
 						[
 							; here we restore our parent's clip region  :-)
@@ -489,7 +542,8 @@ slim/register [
 				
 				
 				; manage resizing
-				frame/material/fill-weight: liquify*/fill !plug frame/material/fill-weight
+				frame/material/content-fill-weight: liquify*/fill !plug frame/material/content-fill-weight
+				frame/material/fill-weight: liquify*/fill !pair-mult frame/material/fill-weight
 				frame/material/fill-accumulation: liquify*/fill !plug frame/material/fill-accumulation
 				frame/material/stretch: liquify*/fill !plug frame/material/stretch
 				frame/material/content-spacing: liquify*/fill !plug 0x0
@@ -899,6 +953,7 @@ slim/register [
 					mtrl/content-min-dimension
 					mtrl/border-size
 					mtrl/border-size
+					frame/aspects/dimension-adjust
 				]
 
 				;-           -mutate
@@ -912,7 +967,7 @@ slim/register [
 						vprint "COLUMN!"
 						; position
 						mtrl/content-min-dimension/valve: epoxy-lib/!vertical-accumulate/valve
-						mtrl/fill-weight/valve: epoxy-lib/!vertical-accumulate/valve
+						mtrl/content-fill-weight/valve: epoxy-lib/!vertical-accumulate/valve
 						mtrl/content-spacing/valve: epoxy-lib/!vertical-accumulate/valve
 					]
 					
@@ -921,7 +976,7 @@ slim/register [
 						vprint "ROW!"
 						; position
 						mtrl/content-min-dimension/valve: epoxy-lib/!horizontal-accumulate/valve
-						mtrl/fill-weight/valve: epoxy-lib/!horizontal-accumulate/valve
+						mtrl/content-fill-weight/valve: epoxy-lib/!horizontal-accumulate/valve
 						mtrl/content-spacing/valve: epoxy-lib/!horizontal-accumulate/valve
 					]
 				]
@@ -936,7 +991,7 @@ slim/register [
 				;-            -reset frame
 				
 				; reset our marble-dependent material properties
-				unlink*/detach mtrl/fill-weight
+				unlink*/detach mtrl/content-fill-weight
 				unlink*/detach mtrl/stretch
 				unlink*/detach mtrl/content-spacing
 				
@@ -997,7 +1052,7 @@ slim/register [
 					link*/reset mmtrl/dimension reduce [
 						mtrl/content-dimension
 						mtrl/content-min-dimension
-						mtrl/fill-weight
+						mtrl/content-fill-weight
 						mmtrl/min-dimension
 						mmtrl/fill-weight
 						mmtrl/fill-accumulation
@@ -1005,7 +1060,10 @@ slim/register [
 					]
 					
 					; accumulate frame fill weight
-					link* mtrl/fill-weight mmtrl/fill-weight
+					link* mtrl/content-fill-weight mmtrl/fill-weight
+					
+					link*/reset mtrl/fill-weight reduce [ mtrl/content-fill-weight frame/aspects/fill-scale  ]
+					
 					
 					;-------
 					; take care of collection MUTATIONS
@@ -1097,6 +1155,23 @@ slim/register [
 							do bind/copy data/2 frame 
 						)
 						
+						| 'stiff-x (
+							fill* frame/aspects/fill-scale 0x1
+						)
+						
+						| 'stiff-y (
+							fill* frame/aspects/fill-scale 1x0
+						)
+						
+						| 'stiff (
+							fill* frame/aspects/fill-scale 0x0
+						)
+						
+						| 'adjust set data pair! (
+							print "ADJUST!"
+							fill* frame/aspects/dimension-adjust data
+						)
+						
 						| 'corner set data integer! (
 							fill* frame/aspects/corner data
 						) 
@@ -1120,7 +1195,7 @@ slim/register [
 								1 [
 									vprint "frame COLOR!" 
 									vprint data
-									fill* frame/aspects/frame-color data
+									fill* frame/aspects/border-color data
 								]
 								
 								2 [
