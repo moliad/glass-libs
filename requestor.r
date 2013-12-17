@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glass requestor"
 	file: %requestor.r
-	version: 1.0.0
-	date: 2013-9-17
+	version: 1.0.1
+	date: 2013-12-17
 	author: "Maxim Olivier-Adlhoch"
 	purpose: {Default requestor group, basis for all other requestors.}
 	web: http://www.revault.org/modules/requestor.rmrk
@@ -12,7 +12,7 @@ REBOL [
 
 	; -- slim - Library Manager --
 	slim-name: 'requestor
-	slim-version: 1.2.1
+	slim-version: 1.2.2
 	slim-prefix: none
 	slim-update: http://www.revault.org/downloads/modules/requestor.r
 
@@ -37,7 +37,10 @@ REBOL [
 	history: {
 		v1.0.0 - 2013-09-17
 			-License changed to Apache v2
-}
+			
+		v1.0.1 - 2013-12-17
+			-frame-color aspect replaced to border-color
+	}
 	;-  \ history
 
 	;-  / documentation
@@ -58,6 +61,7 @@ REBOL [
 	}
 	;-  \ documentation
 ]
+
 
 
 ;--------------------------------------
@@ -169,7 +173,7 @@ slim/register [
 						position !pair 
 						dimension !pair
 						color !color (blue)
-						frame-color  !color 
+						border-color  !color 
 						;clip-region !block ([0x0 1000x1000])
 						;parent-clip-region !block ([0x0 1000x1000])
 					]
@@ -185,7 +189,7 @@ slim/register [
 						;[]
 						
 						; fg layer
-						 position dimension color frame-color ;clip-region parent-clip-region
+						 position dimension color border-color ;clip-region parent-clip-region
 						[
 							(sillica-lib/prim-shadow-box data/position= data/dimension=  5 )
 							

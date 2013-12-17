@@ -536,8 +536,7 @@ slim/register [
 						| set data pair! (
 							pair-count: pair-count + 1
 							switch pair-count [
-								1 [	fill* marble/material/min-dimension data ] ; deprecated
-								;1 [	fill* marble/aspects/size data ]
+								1 [	fill* marble/material/min-dimension data ]
 								2 [	fill* marble/aspects/offset data ]
 							]
 						) 

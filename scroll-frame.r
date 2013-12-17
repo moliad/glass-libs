@@ -1,46 +1,55 @@
 REBOL [
-	; -- basic rebol header --
-	file:       %scroll-frame.r
-	version:    1.0.0
-	date:       2010-06-20
-	purpose:    "A frame with an inner frame which you can slide around."
-	author:     "Maxim Olivier-Adlhoch"
-	copyright:  "Copyright © 2010 Maxim Olivier-Adlhoch"
-	web:        http://www.moliad.net/dev-tools/glass/
+	; -- Core Header attributes --
+	title: "iii"
+	file: %scroll-frame.r
+	version: 1.0.1
+	date: 2013-12-17
+	author: "Maxim Olivier-Adlhoch"
+	purpose: {A frame with an inner frame which you can slide around.}
+	web: http://www.revault.org/modules/scroll-frame.rmrk
+	source-encoding: "Windows-1252"
+	note: {slim Library Manager is Required to use this module.}
 
-	;-- slim parameters --
-	slim-name:   'scroll-frame
-	slim-prefix:  none
-	slim-version: 0.9.11
+	; -- slim - Library Manager --
+	slim-name: 'scroll-frame
+	slim-version: 1.2.2
+	slim-prefix: none
+	slim-update: http://www.revault.org/downloads/modules/scroll-frame.r
 
-	;-- Licensing details --
-	license-type: 'MIT
-	license:      {Copyright © 2010 Maxim Olivier-Adlhoch.
+	; -- Licensing details  --
+	copyright: "Copyright © 2013 Maxim Olivier-Adlhoch"
+	license-type: "Apache License v2.0"
+	license: {Copyright © 2013 Maxim Olivier-Adlhoch
 
-		Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
-		and associated documentation files (the "Software"), to deal in the Software without restriction, 
-		including without limitation the rights to use, copy, modify, merge, publish, distribute, 
-		sublicense, and/or sell copies of the Software, and to permit persons to whom the Software 
-		is furnished to do so, subject to the following conditions:
-		
-		The above copyright notice and this permission notice shall be included in all copies or 
-		substantial portions of the Software.}
-		
-	disclaimer: {THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-		INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-		PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE 
-		FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ]
-		ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
-		THE SOFTWARE.}
-		
-	;-- Documentaton --
-	notes:      "You need slim to use this library (get it at: www.moliad.net/modules/slim/)"
-	details: {
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+	
+		http://www.apache.org/licenses/LICENSE-2.0
+	
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.}
+
+	;-  / history
+	history: {
+		v1.0.1 - 2013-12-17
+			-fixed header information which was still using old MIT license and other deprecated fields.
+			-frame-color aspect replaced to border-color
+	}
+	;-  \ history
+
+	;-  / documentation
+	documentation: {
 		This is basically a group with a custom layout mechanism.
 		
 		the inner-frame can be scrolled and its data is NOT clipped.
-		}
+	}
+	;-  \ documentation
 ]
+
 
 
 
@@ -227,7 +236,7 @@ slim/register [
 ;						;[]
 ;						
 ;						; fg layer
-;						; position dimension color frame-color clip-region parent-clip-region
+;						; position dimension color border-color clip-region parent-clip-region
 ;						disable? position dimension
 ;						[
 ;							; here we restore our parent's clip region  :-)
@@ -392,22 +401,22 @@ slim/register [
 				;vin [{!place-at-edge/process}]
 				
 				position: pick data 1
-			    dimension: pick data 2
-			    edge: pick data 3
-			    min-size: 1x1 * pick data 4 ; can be a width
-			    
-		    
-			    
-			    plug/liquid: switch/default edge [
-			    	; synonym for bottom
-			    	horizontal [
-			    		position + ( dimension - min-size * 0x1) ;- 0x1
-			    	]
-			    	; synonym for right
-			    	vertical [
-			    		position + ( dimension - min-size * 1x0) ;- 1x0
-			    	]
-			    ][0x0]
+				dimension: pick data 2
+				edge: pick data 3
+				min-size: 1x1 * pick data 4 ; can be a width
+				
+			
+				
+				plug/liquid: switch/default edge [
+					; synonym for bottom
+					horizontal [
+						position + ( dimension - min-size * 0x1) ;- 0x1
+					]
+					; synonym for right
+					vertical [
+						position + ( dimension - min-size * 1x0) ;- 1x0
+					]
+				][0x0]
 				
 				;vout
 			]
@@ -429,26 +438,26 @@ slim/register [
 				;vin [{!dimension-at-edge/process}]
 				
 				position: pick data 1
-			    dimension: pick data 2
-			    edge: pick data 3
-			    min-size: 1x1 * pick data 4 ; can be a width
-			    
+				dimension: pick data 2
+				edge: pick data 3
+				min-size: 1x1 * pick data 4 ; can be a width
+				
 ;			    v?? position
 ;			    v?? dimension
 ;			    v?? edge
 ;			    v?? min-size
 ;			    
-			    
-			    plug/liquid: switch/default edge [
-			    	; synonym for bottom
-			    	horizontal [
-			    		( dimension * 1x0) + (min-size * -1x1)
-			    	]
-			    	; synonym for right
-			    	vertical [
-			    		( dimension * 0x1) + (min-size * 1x-1)
-			    	]
-			    ][0x0]
+				
+				plug/liquid: switch/default edge [
+					; synonym for bottom
+					horizontal [
+						( dimension * 1x0) + (min-size * -1x1)
+					]
+					; synonym for right
+					vertical [
+						( dimension * 0x1) + (min-size * 1x-1)
+					]
+				][0x0]
 				
 				
 				;vout

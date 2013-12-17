@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glass choice pull down"
 	file: %style-choice.r
-	version: 1.0.0
-	date: 2013-9-18
+	version: 1.0.1
+	date: 2013-12-17
 	author: "Maxim Olivier-Adlhoch"
 	purpose: {POPUP choice which shows list of items from which to pick.  uses a list style as part of its glob.}
 	web: http://www.revault.org/modules/style-choice.rmrk
@@ -12,7 +12,7 @@ REBOL [
 
 	; -- slim - Library Manager --
 	slim-name: 'style-choice
-	slim-version: 1.2.1
+	slim-version: 1.2.2
 	slim-prefix: none
 	slim-update: http://www.revault.org/downloads/modules/style-choice.r
 
@@ -36,7 +36,11 @@ REBOL [
 	;-  / history
 	history: {
 		v1.0.0 - 2013-09-18
-			-License changed to Apache v2}
+			-License changed to Apache v2
+
+		v1.0.1 - 2013-12-17
+			-frame-color aspect replaced to border-color
+	}
 	;-  \ history
 
 	;-  / documentation
@@ -54,6 +58,7 @@ REBOL [
 	}
 	;-  \ documentation
 ]
+
 
 
 
@@ -147,7 +152,7 @@ slim/register [
 			overlay-glob-class: [
 				column tight with [
 					fill* aspects/color white 
-					fill* aspects/frame-color black
+					fill* aspects/border-color black
 					fill* material/border-size 3x3
 				][
 					droplist with [
