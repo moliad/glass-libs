@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glass marble "
 	file: %marble.r
-	version: 1.0.0
-	date: 2013-9-17
+	version: 1.0.1
+	date: 2013-12-17
 	author: "Maxim Olivier-Adlhoch"
 	purpose: {The core object which defines the basic GLASS functionality. All styles and components are derived from marble.}
 	web: http://www.revault.org/modules/marble.rmrk
@@ -12,7 +12,7 @@ REBOL [
 
 	; -- slim - Library Manager --
 	slim-name: 'marble
-	slim-version: 1.2.1
+	slim-version: 1.2.2
 	slim-prefix: none
 	slim-update: http://www.revault.org/downloads/modules/marble.r
 
@@ -37,6 +37,10 @@ REBOL [
 	history: {
 		v1.0.0 - 2013-09-17
 			-License changed to Apache v2
+
+		v1.0.1 - 2013-12-17
+			-Added border-color attribute
+			-added stiff-x & stiff-y  to dialect 
 }
 	;-  \ history
 
@@ -164,6 +168,7 @@ REBOL [
 
 
 
+
 ;--------------------------------------
 ; unit testing setup
 ;--------------------------------------
@@ -280,6 +285,10 @@ slim/register [
 			
 			;-       label-color:
 			label-color: black
+			
+			;-        border-color:
+			; marbles don't have a border by default
+			border-color: none
 			
 			;-       label:
 			label: none
@@ -567,6 +576,7 @@ slim/register [
 						label !string
 						color !color 
 						label-color !color
+						border-color !color
 						min-dimension !pair
 						font !any
 						align !word
@@ -592,13 +602,16 @@ slim/register [
 						;[]
 						
 						; fg layer
-						position dimension color label label-color min-dimension font align corner padding
+						position dimension color label label-color border-color min-dimension font align corner padding
 						[
 							line-width 1
 							(
-								either tuple? data/color= [
+								either any [
+									tuple? data/color=
+									tuple? data/border-color=
+								] [
 									compose [
-										pen  (data/color=) 
+										pen  (data/border-color=) 
 										fill-pen (data/color=)
 										box (data/position=) (data/position= + data/dimension= - 1x1) ( data/corner=)
 									]
@@ -608,7 +621,7 @@ slim/register [
 							;line (data/position=) (data/position= + data/dimension=)
 							;(prim-x data/position= data/dimension=  data/color= + 0.0.0.128 1)
 							line-width 0
-							pen none
+							pen (none)
 							(
 								prim-label/pad data/label= data/position= + 1x0 data/dimension= data/label-color= data/font= data/align= data/padding=
 							)
@@ -1216,6 +1229,14 @@ slim/register [
 							fill* marble/material/fill-weight 0x0
 						) 
 						
+						| 'stiff-x (
+							fill* marble/material/fill-weight 0x1
+						) 
+						
+						| 'stiff-y (
+							fill* marble/material/fill-weight 1x0
+						) 
+						
 						| 'stretch set data pair! (
 							fill* marble/material/fill-weight data
 						) 
@@ -1283,6 +1304,7 @@ slim/register [
 							switch tuple-count [
 								1 [set-aspect marble 'label-color data]
 								2 [set-aspect marble 'color data]
+								2 [set-aspect marble 'border-color data]
 							]
 							
 						) 
@@ -1290,8 +1312,7 @@ slim/register [
 						| set data pair! (
 							pair-count: pair-count + 1
 							switch pair-count [
-;								1 [	fill* marble/material/min-dimension data ] ; deprecated
-								1 [	fill* marble/aspects/size data ]
+								1 [	fill* marble/material/min-dimension data ] 
 								2 [	fill* marble/aspects/offset data ]
 							]
 						) 
