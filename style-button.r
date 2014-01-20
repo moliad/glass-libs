@@ -400,7 +400,7 @@ slim/register [
 				if action-event [
 					; totally configurable end-user event handling.
 					; not all actions are implemented in the actions, but this allows the user to 
-					; add his own events AND his own trtueactions and still work within the API.
+					; add his own events AND his own actions and still work within the API.
 					do-event action-event
 				]
 				
