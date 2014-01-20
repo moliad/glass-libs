@@ -451,7 +451,7 @@ slim/register [
 	;-     do-queue()
 	;-----------------
 	do-queue: func [
-		/local gl-event trigger trigger-action
+		/local gl-event trigger trigger-action done?
 	][
 		;vin [{do-queue()}]
 		
@@ -459,32 +459,25 @@ slim/register [
 		until [
 			if gl-event: pick event-queue 1 [
 				either trigger: get in gl-event 'trigger-event [
-					;print "trigger event!"
-					switch/default type?/word trigger [
+					;vin "trigger-event()"
+					switch/default type?/word :trigger [
 						date! [
 							;print "timed trigger"
 							either now/precise > trigger [
 								;print "event-triggered event!"
 								;print trigger
-								;?? gl-event
-								if trigger-action: get in gl-event 'trigger-event-action [
-									switch type?/word :trigger-action [
-										block! [
-											bind trigger-action gl-event
-											do trigger-action
+								remove event-queue
+								if function? trigger-action: get in gl-event 'trigger-action [
+									event: trigger-action gl-event
+									if object? event [
+										;vprint "trigger()"
+										;vprobe event/trigger-repeat-delay
+										if event/trigger-repeat-delay [
+											event/trigger-event: now/precise + event/trigger-repeat-delay
 										]
-										function! [
-											trigger-action gl-event
-										]
+										append event-queue event
 									]
 								]
-								
-								either time? gl-event/trigger-repeat? [
-									gl-event/trigger-event: now/precise + gl-event/trigger-repeat?
-								][
-									remove event-queue
-								]
-								dispatch gl-event
 							][
 								;---
 								; skip the event, its not ready.
@@ -492,14 +485,17 @@ slim/register [
 							]
 						]
 					][
+						;---
+						; if the trigger-event is invalid, we just dispatch it  
+						; like, a normal event
 						remove event-queue
 						dispatch gl-event
 					]
+					;vout
 				][
 					remove event-queue
 					dispatch gl-event
 				]
-			
 			]
 			
 			empty? event-queue
@@ -513,7 +509,7 @@ slim/register [
 	
 	
 	;--------------------------
-	;-     queue-trigger()
+	;-     queue-delayed-trigger()
 	;--------------------------
 	; purpose:  
 	;
@@ -522,49 +518,69 @@ slim/register [
 	; returns:  
 	;
 	; notes:    
+	; 	to build repeating events, the action() determines if the event is 
+	; 	requeued by returning an event (usually the event it received).
+	;	in such a case, make sure to add a delay to the trigger-next, if you need it.
+	;
+	; 	if the trigger action returns none, the event is NOT requeued, and the
+	; 	repeat action is pointeless.
 	;
 	; tests:    
 	;--------------------------
-	queue-trigger: funcl [
-		delay [time! date! integer! decimal!]  ; number values are in seconds
-		action [function! block!]
-		/repeat  "when delay is given in time or numerical value, the delay is stored in repeat? ignored otherwise"
-		/label lname [word!] "give this trigger a label in order to manipulate it later."
-		/data tdata
+	queue-delayed-trigger: funcl [
+		delay [time! date! integer! decimal! none!]  ; number values are in seconds, functions are executed at each 
+		action [function! block!] "what to do when delay is passed, when given a block, 'EVENT is set to the trigger event"
+		/repeat-delay "when used, the trigger delay is automatically calculated after the action returns an event."
+		/label lname [word!] "give this trigger a label in order to recognize it later."
+		/data user-data
 	][
-		vin "queue-trigger()"
+		vin "queue-delayed-trigger()"
 		
-		switch type?/word delay [
+		default lname 'time-trigger
+		
+		switch (type?/word :delay) [
 			integer! decimal! [
 				delay:  ( 0:0:1 * delay )
-				if repeat [
-					repeat: delay
+				if repeat-delay [
+					repeat-delay: delay
 				]
-				delay: now/precise + delay
 			]
-			time! [
-				if repeat [
-					repeat: delay
+			none! [
+				delay: 0:00
+			]
+			date! [
+				if repeat-delay [
+					to-error "queue-trigger(): cannot use /repeat-delay on date delayed events"
 				]
-				delay:  now/precise + delay
+				; when given a date and repeat, we figure out the difference from date and now.
+				delay: difference delay now/precise
 			]
 		]
 		
+		if block? :action [
+			action: func [event] :action
+		]
 		
+		--action--: :action
 		
+		;vprint "====>"
 		event: make-event compose/only [
 			event-label: lname
-			trigger-event: delay
-			trigger-event-action: (:action)
-			trigger-data: tdata
-			trigger-repeat?: repeat
+			
+			trigger-event: now/precise + delay
+			trigger-data: user-data
+			trigger-action: :--action--
+			
+			trigger-repeat-delay: either repeat-delay [ delay ][ none ]
 		]
+		;vprint "<===="
 		
 		queue-event event
 		
 		vout
 		event
 	]
+	
 	
 	
 	
