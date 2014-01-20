@@ -453,6 +453,7 @@ slim/register [
 							;probe event/drag-start
 							
 							fill* scroller/material/knob-offset scroller/knob-selected-event/knob-offset-start + event/drag-delta
+							event: make event [  value: content marble/aspects/value  ]
 							do-action event
 						]
 					]
