@@ -42,6 +42,17 @@ REBOL [
 
 	;-  / documentation
 	documentation: {
+	
+	  --------------------
+		DANGER:  the hold() function was patched (see comment there) but current side-effects are unknown (if any)
+		         if you are using any modal dialogs on application start, it may cause your app to start handling
+		         events early.  while this usually shouldn't be cause for concern, it may break some apps.
+		         
+		         if you have this issue, uncomment the line in the hold function, but know that you then can't have
+		         early modal dialogs(before calling do-events), since the app needs to have started handling 
+		         events for it to work.
+	  ---------------------
+	
 		This library implements the event stream system as used by GLASS.  It allows many advanced event
 		manipulations including event stream recording, queuing custom events and stream transformations.
 		
@@ -1261,7 +1272,6 @@ slim/register [
 		if resume? [
 			resume?: false
 			if hold-count > 0 [
-;				probe " - WILL RESUME FROM INTERRUPTION - "
 				hold-count: hold-count - 1
 				;queue-event compose [viewport: (last-wake-event/viewport) action: 'resume]
 				return true
@@ -1452,11 +1462,13 @@ slim/register [
 	;-----------------
 	hold: func [
 	][
-		vin [{interrupt()}]
-		if last-wake-event [
+		vin [{hold()}]
+		;if last-wake-event [   ; NOTE : LINE WAS COMMENTED WITHOUT COMPLETE CONFIDENCE THIS WON'T GENERATE OTHER ERRORS.
+								;        This may cause a wait toooo soon in some apps.
+			vprobe "holding!"
 			hold-count: hold-count + 1
 			wait []
-		]
+		;]
 		vout
 	]
 	
