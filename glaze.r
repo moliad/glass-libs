@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glaze"
 	file: %glaze.r
-	version: 1.0.3
-	date: 2013-12-17
+	version: 1.0.4
+	date: 2014-6-4
 	author: "Maxim Olivier-Adlhoch"
 	purpose: "The default stylesheet for GLASS."
 	web: http://www.revault.org/modules/glaze.rmrk
@@ -17,9 +17,9 @@ REBOL [
 	slim-update: http://www.revault.org/downloads/modules/glaze.r
 
 	; -- Licensing details  --
-	copyright: "Copyright © 2013 Maxim Olivier-Adlhoch"
+	copyright: "Copyright © 2014 Maxim Olivier-Adlhoch"
 	license-type: "Apache License v2.0"
-	license: {Copyright © 2013 Maxim Olivier-Adlhoch
+	license: {Copyright © 2014 Maxim Olivier-Adlhoch
 
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.
@@ -45,7 +45,11 @@ REBOL [
 			-Added CV style
 	
 		v1.0.3 - 2013-12-17
-			-frame-color aspect replaced to border-color in all marble styles which had it.}
+			-frame-color aspect replaced to border-color in all marble styles which had it.
+		v1.0.4 - 2014-06-04
+			-hseparator style added, a simple horizontal carved line.
+			-upshadow-hseparator style removed.
+		}
 	;-  \ history
 
 	;-  / documentation
@@ -69,6 +73,7 @@ REBOL [
 	}
 	;-  \ documentation
 ]
+
 
 
 
@@ -518,6 +523,7 @@ slim/register [
 	] 'shadow-hseparator
 
 	sl/collect-style/as make shadow-separator [
+		material: make material [fill-weight: 0x0 min-dimension: 2x2 ]
 		valve: make valve [
 			glob-class: make glob-class [
 				valve: make valve [
@@ -530,18 +536,19 @@ slim/register [
 						; fg layer
 						position dimension
 						[
-							pen (0.0.0.240)
-							line  (data/position= + (0x1 * data/dimension= - 3)) (data/position= + data/dimension= - 0x3)
-							pen (0.0.0.200)
+							line-width 1
+							;pen (0.0.0.245)
+							;line  (data/position= + (0x1 * data/dimension= - 3)) (data/position= + data/dimension= - 0x3)
+							pen (0.0.0.235)
 							line  (data/position= + (0x1 * data/dimension= - 2)) (data/position= + data/dimension= - 0x2)
-							pen (0.0.0.128)
+							pen (255.255.255.50)
 							line  (data/position= + (0x1 * data/dimension= - 1)) (data/position= + data/dimension= - 0x1)
 						]
 					]
 				]
 			]
 		]
-	] 'upshadow-hseparator
+	] 'hseparator
 		
 	
 	
