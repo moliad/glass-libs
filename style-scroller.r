@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glass scroller marble style"
 	file: %style-scroller.r
-	version: 1.0.0
-	date: 2013-9-17
+	version: 1.0.1
+	date: 2014-6-4
 	author: "Maxim Olivier-Adlhoch"
 	purpose: "Scroller style for GLASS."
 	web: http://www.revault.org/modules/style-scroller.rmrk
@@ -12,14 +12,14 @@ REBOL [
 
 	; -- slim - Library Manager --
 	slim-name: 'style-scroller
-	slim-version: 1.2.1
+	slim-version: 1.2.2
 	slim-prefix: none
 	slim-update: http://www.revault.org/downloads/modules/style-scroller.r
 
 	; -- Licensing details  --
-	copyright: "Copyright © 2013 Maxim Olivier-Adlhoch"
+	copyright: "Copyright © 2014 Maxim Olivier-Adlhoch"
 	license-type: "Apache License v2.0"
-	license: {Copyright © 2013 Maxim Olivier-Adlhoch
+	license: {Copyright © 2014 Maxim Olivier-Adlhoch
 
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.
@@ -36,7 +36,10 @@ REBOL [
 	;-  / history
 	history: {
 		v1.0.0 - 2013-09-17
-			-License change to Apache v2}
+			-License change to Apache v2
+		v1.0.1 - 2014-06-04
+			-Added scroller min/max/current value specification in layout dialect.
+	}
 	;-  \ history
 
 	;-  / documentation
@@ -55,6 +58,7 @@ REBOL [
 	}
 	;-  \ documentation
 ]
+
 
 
 
@@ -115,6 +119,12 @@ slim/register [
 		;-    stiff?:
 		stiff?: none
 		
+	
+		;-    default-data-aspect:
+		default-data-aspect: 'value
+		
+		
+	
 	
 		;-    Aspects[ ]
 		aspects: context [
@@ -600,26 +610,41 @@ slim/register [
 			; it has done previously.
 			;
 			;-----------------
-			dialect: func [
-				marble [object!]
-				spec [block!]
-				stylesheet [block!] "Required so stylesheet propagates in marbles we create"
-				/local data img-count icon
-			][
-				vin [{dialect()}]
-				img-count: 1
+;			dialect: func [
+;				marble [object!]
+;				spec [block!]
+;				stylesheet [block!] "Required so stylesheet propagates in marbles we create"
+;				/local data img-count icon
+;			][
+;				vin [{dialect()}]
+;
+;				vout
+;			]
+;			
+			
+			;-----------------
+			;-        dialect-rules:
+			; this parse rule is imported into the core marble dialect and shortcuts the defaults, so
+			; you can overide any part of the default dialect!!
+			;-----------------
+			dialect-rules:  [
+				'min set data [integer! | decimal!] (
+					fill* marble/aspects/minimum data 
+				)
 				
-				parse spec [
-					any [
-						'stiff (
-							marble/stiff?:  0x0
-						)
-						| skip
-					]
-				]
-
-				vout
-			]			
+				| 'max set data [integer! | decimal!] (
+					fill* marble/aspects/maximum data 
+				) 
+				
+				|  'visible set data [integer! | decimal!] (
+					fill* marble/aspects/visible data 
+				) 
+				
+				| 'init set data [integer! | decimal!] (
+					fill* marble/aspects/value data
+				)
+				
+			]
 
 
 
@@ -629,7 +654,7 @@ slim/register [
 			;-----------------
 			fasten: func [
 				scroller
-				/local value mtrl aspects vertical? 
+				/local value mtrl aspects vertical? data
 			][
 				vin [{fasten()}]
 								
@@ -684,12 +709,15 @@ slim/register [
 				;------------
 				; setup value & knob-offset BRIDGE
 				value: aspects/value
+				data: content* aspects/value
 				value/valve/attach/to value mtrl/knob-offset 'value
 				
 				value/valve/link/pipe-server value aspects/minimum
 				value/valve/link/pipe-server value mtrl/scroll-range
 				value/valve/link/pipe-server value mtrl/scroll-space
 				value/valve/link/pipe-server value mtrl/orientation
+				
+				fill* aspects/value data
 				
 				
 				; setup knob position (knob offset + marble position)
