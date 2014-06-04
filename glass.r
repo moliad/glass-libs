@@ -530,6 +530,10 @@ slim/register [
 		/only
 	][
 		vin [{collect-marble()}]
+		
+		; make sure the marble isn't already in a layout
+		unframe marble
+		
 		either top [
 			frame/valve/gl-collect/top frame marble
 		][
