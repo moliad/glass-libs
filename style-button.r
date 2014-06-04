@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glass button marble"
 	file: %style-button.r
-	version: 1.0.0
-	date: 2013-9-17
+	version: 1.0.1
+	date: 2014-6-4
 	author: "Maxim Olivier-Adlhoch"
 	purpose: "The core button style"
 	web: http://www.revault.org/modules/style-button.rmrk
@@ -12,14 +12,14 @@ REBOL [
 
 	; -- slim - Library Manager --
 	slim-name: 'style-button
-	slim-version: 1.2.1
+	slim-version: 1.2.2
 	slim-prefix: none
 	slim-update: http://www.revault.org/downloads/modules/style-button.r
 
 	; -- Licensing details  --
-	copyright: "Copyright © 2013 Maxim Olivier-Adlhoch"
+	copyright: "Copyright © 2014 Maxim Olivier-Adlhoch"
 	license-type: "Apache License v2.0"
-	license: {Copyright © 2013 Maxim Olivier-Adlhoch
+	license: {Copyright © 2014 Maxim Olivier-Adlhoch
 
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.
@@ -37,7 +37,9 @@ REBOL [
 	history: {
 		v1.0.0 - 2013-09-17
 			-License changed to Apache v2
-}
+		v1.0.1 - 2014-06-04
+			-can now use 'auto-size in layout spec.
+	}
 	;-  \ history
 
 	;-  / documentation
@@ -48,6 +50,7 @@ REBOL [
 	}
 	;-  \ documentation
 ]
+
 
 
 
@@ -477,6 +480,10 @@ slim/register [
 						| 'padding set data [pair! | integer!] (
 							fill* marble/aspects/padding 1x1 * data
 						) 
+						
+						| 'auto-size (
+							marble: make marble [label-auto-resize-aspect: 'automatic]
+						)
 						
 						
 						;-----
