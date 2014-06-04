@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glass marble "
 	file: %marble.r
-	version: 1.0.1
-	date: 2013-12-17
+	version: 1.0.2
+	date: 2014-6-4
 	author: "Maxim Olivier-Adlhoch"
 	purpose: {The core object which defines the basic GLASS functionality. All styles and components are derived from marble.}
 	web: http://www.revault.org/modules/marble.rmrk
@@ -17,9 +17,9 @@ REBOL [
 	slim-update: http://www.revault.org/downloads/modules/marble.r
 
 	; -- Licensing details  --
-	copyright: "Copyright © 2013 Maxim Olivier-Adlhoch"
+	copyright: "Copyright © 2014 Maxim Olivier-Adlhoch"
 	license-type: "Apache License v2.0"
-	license: {Copyright © 2013 Maxim Olivier-Adlhoch
+	license: {Copyright © 2014 Maxim Olivier-Adlhoch
 
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.
@@ -41,7 +41,14 @@ REBOL [
 		v1.0.1 - 2013-12-17
 			-Added border-color attribute
 			-added stiff-x & stiff-y  to dialect 
-}
+		v1.0.2 - 2014-06-04
+			FEAT: 
+			-Auto-sizing now part of basic marble dialect.    
+			-polymorphic dialecting through the use of  'local-dialect  value in the marble. 
+			-connect-to facet, allows to quickly link two marbles using their default facet directly.  so a label can connect-to a scroller directly, for example.
+			FIX:
+			-mutation of min-size aspect for real time auto-sizing enabling (no need to build a style in glaze anymore, just use auto-size facet)
+	}
 	;-  \ history
 
 	;-  / documentation
@@ -165,6 +172,7 @@ REBOL [
 	}
 	;-  \ documentation
 ]
+
 
 
 
@@ -958,7 +966,7 @@ slim/register [
 			
 		
 			;--------------------------
-			;-             setup-aspects()
+			;-        setup-aspects()
 			;
 			; when required, simply make this a function which
 			; accepts a marble as only parameter. 
@@ -1026,6 +1034,7 @@ slim/register [
 				
 				; the automatic label resizing is optional in marbles.
 				either 'automatic = get in marble 'label-auto-resize-aspect [
+					;probe "AUTO-SIZING!!!"
 					mtrl/min-dimension: liquify* epoxy-lib/!label-min-size
 				][
 					mtrl/min-dimension: liquify*/fill !plug mtrl/min-dimension
@@ -1096,12 +1105,19 @@ slim/register [
 				; the automatic label resizing is optional in marbles.
 				;
 				; current acceptible values are ['automatic | 'disabled]
+				
 				either 'automatic = get in marble 'label-auto-resize-aspect [
-					link*/exclusive marble/material/min-dimension marble/aspects/size
+					; mutate based on existance of 'label-auto-resize-aspect in marble.
+					marble/material/min-dimension/valve: epoxy-lib/!label-min-size/valve
+					
+					link*/reset/exclusive marble/material/min-dimension marble/aspects/size
 					link* marble/material/min-dimension marble/aspects/label
 					link* marble/material/min-dimension marble/aspects/font
 					link* marble/material/min-dimension marble/aspects/padding
 				][
+					; mutate based on existance of 'label-auto-resize-aspect in marble.
+					marble/material/min-dimension/valve: !plug/valve
+					
 					if in marble/aspects 'size [
 						link*/reset  marble/material/dimension marble/aspects/size
 					]
@@ -1211,13 +1227,21 @@ slim/register [
 				;/local data pair-count tuple-count tmp
 			][
 				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/specify()}]
-				
+				other-marble: none
 				pair-count: 0
 				tuple-count: 0
 				blk-count: 0
+				local-dialect: [end skip]
+				if in marble/valve 'dialect-rules [
+					local-dialect: bind/copy (get in marble/valve 'dialect-rules) 'blk-count
+				]
 				parse spec [
+				
+				
 					any [
-						copy data ['with block!] (
+						local-dialect
+						
+						| copy data ['with block!] (
 							;print "SPECIFIED A WITH BLOCK"
 							;marble: make marble data/2
 							;liquid-lib/reindex-plug marble
@@ -1252,6 +1276,12 @@ slim/register [
 						| 'padding set data [pair! | integer!] (
 							fill* marble/aspects/padding 1x1 * data
 						) 
+
+						| 'auto-size (
+							marble: make marble [label-auto-resize-aspect: 'automatic]
+							;marble/
+						)
+						
 						
 						
 						;-----
@@ -1284,7 +1314,7 @@ slim/register [
 						| 'attach-to set pipe [object! | word!] (
 							if word? pipe [pipe: get pipe]
 							
-							if liquid-lib/plug? pipe [
+							if liquid-lib/plug? :pipe [
 								aspect: marble/valve/get-default-aspect marble
 
 								value-backup: content pipe
@@ -1294,10 +1324,30 @@ slim/register [
 								
 							]
 						)
-						
-						| set data [integer!] (
-							fill* marble/aspects/corner data
-						) 
+						;-----
+						; attach ourself to another plug (keeping its data, if any).
+						;
+						; the net result is that he and we will be using ITS pipe server
+						;-----
+						| 'connect-to set other-marble [object! | word!] (
+							if word? other-marble [other-marble: get other-marble]
+							
+							if all [
+								object? :other-marble
+								in other-marble 'aspects
+								in other-marble 'frame
+								in other-marble 'material
+								in other-marble 'valve
+							][
+								; this seems to be a marble... attempt to LINK our default to its default aspect
+								if other-aspect: other-marble/valve/get-default-aspect other-marble [
+									if aspect: marble/valve/get-default-aspect marble [
+										link/reset aspect other-aspect
+									]
+								]
+							
+							]
+						)
 						
 						| set data tuple! (
 							tuple-count: tuple-count + 1
@@ -1335,6 +1385,10 @@ slim/register [
 									]
 								]
 							]
+						) 
+						
+						| set data [integer!] (
+							fill* marble/aspects/corner data
 						) 
 						
 						| skip 
