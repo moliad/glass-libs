@@ -76,6 +76,7 @@ slim/register [
 		[unlink* unlink] 
 		[dirty* dirty]
 		processor
+		liquify
 	]
 	
 	
