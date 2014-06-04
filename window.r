@@ -373,7 +373,7 @@ slim/register [
 		;-----------------
 		display: func [
 			/center "centers the window in screen"
-			/local screen
+			/local screen off
 		][
 			vin [{display()}]
 			unless visible? [
@@ -392,7 +392,8 @@ slim/register [
 
 				vprint ["window offset: " content* aspects/offset]
 				if center [
-					fill* aspects/offset (screen/size - view-face/size / 2)
+					off: content aspects/offset
+					fill* aspects/offset ((screen/size - view-face/size / 2) + off)
 				]
 				view-face/offset: content* aspects/offset
 				view-face/rate: 1 ; forces timer events in wake-event
