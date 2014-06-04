@@ -2,8 +2,8 @@ REBOL [
 	; -- Core Header attributes --
 	title: "Glass sillica core module"
 	file: %sillica.r
-	version: 1.0.0
-	date: 2013-9-18
+	version: 1.0.1
+	date: 2014-6-4
 	author: "Maxim Olivier-Adlhoch"
 	purpose: {Low-level components  and functions used by many GLASS modules}
 	web: http://www.revault.org/modules/sillica.rmrk
@@ -12,14 +12,14 @@ REBOL [
 
 	; -- slim - Library Manager --
 	slim-name: 'sillica
-	slim-version: 1.2.1
+	slim-version: 1.2.2
 	slim-prefix: none
 	slim-update: http://www.revault.org/downloads/modules/sillica.r
 
 	; -- Licensing details  --
-	copyright: "Copyright © 2013 Maxim Olivier-Adlhoch"
+	copyright: "Copyright © 2014 Maxim Olivier-Adlhoch"
 	license-type: "Apache License v2.0"
-	license: {Copyright © 2013 Maxim Olivier-Adlhoch
+	license: {Copyright © 2014 Maxim Olivier-Adlhoch
 
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.
@@ -36,7 +36,14 @@ REBOL [
 	;-  / history
 	history: {
 		v1.0.0 - 2013-09-18
-			-License changed to Apache v2}
+			-License changed to Apache v2
+		v1.0.1 - 2014-06-04
+			-Tweaks to the stylesheet include changing default font to Arial (cleaner rendering)
+			-bold font render now thicker and less fuzzy (much nicer).
+			-layout() can now set the offset before display directly via /position refinement (works alongside /center).
+			
+			
+	}
 	;-  \ history
 
 	;-  / documentation
@@ -76,6 +83,7 @@ REBOL [
 	}
 	;-  \ documentation
 ]
+
 
 
 
@@ -157,14 +165,20 @@ slim/register [
 	;base-font: make face/font [style: none size: 13 name: "Trebuchet MS"]
 	;base-font: make face/font [style: none size: 13 name: "Arial"]
 	;base-font: make face/font [style: none size: 13 name: "Tahoma"]
+	;base-font: make face/font [name: "verdana" size: 13 style: none bold?: false]
 	
 	;-        -fonts
-	base-font: make face/font [name: "verdana" size: 13 style: none bold?: false]
+	base-font: make face/font [name: "Tahoma" size: 13 style: none bold?: false]
+	base-font: make face/font [name: "Trebuchet MS" size: 13 style: none bold?: false]
+	base-font: make face/font [name: "Lao UI" size: 13 style: none bold?: false]
+	base-font: make face/font [name: "Segoe UI" size: 13 style: none bold?: false]
+	base-font: make face/font [name: "Arial" size: 13 style: none bold?: false]
+	
 	mono-font: make face/font [name: font-fixed bold?: false char-width: 7]
 	
 	set 'theme-base-font base-font 
 	
-	set 'theme-knob-font make base-font [size: 13 bold?: true]
+	set 'theme-knob-font make base-font [size: 15 ];  bold?: true]
 	set 'theme-small-knob-font make base-font [size: 11 bold?: none]
 	set 'theme-menu-item-font make base-font [size: 11 bold?: none]
 	set 'theme-list-font make base-font [size: 11]
@@ -175,7 +189,7 @@ slim/register [
 	set 'theme-label-font make base-font [size: 11  ] ;aliased?: true]
 	set 'theme-headline-font make base-font [size: 13  bold?: true]
 	set 'theme-title-font make base-font [size: 20]
-	set 'theme-subtitle-font make base-font [size: 14 bold?: true]
+	set 'theme-subtitle-font make base-font [size: 15 bold?: true]
 	set 'theme-requestor-title-font make base-font [size: 14 bold?: true]
 	set 'theme-editor-char-width 7
 	set 'theme-field-char-width 7
@@ -741,7 +755,7 @@ slim/register [
 			;box (position) (size + position)
 			(
 				either font/bold? [
-					compose [line-width 0.3 pen (color)]
+					compose [line-width 0.5 pen (color)]
 				][[]]
 			)
 			fill-pen (color )
@@ -1868,6 +1882,7 @@ slim/register [
 		/within wrapper [word! object! none!] "a style name or an actual allocated marble, inside of which we will put new marbles."
 		/using stylesheet [block!]
 		/options wrapper-spec [block!] "allows you to supply a spec used when creating the wrapper itself."
+		/position offset [pair!] "You can set the offset value of the wrapper. this allows you to manually place the window"
 		/only "do not automatically open a window if a !window is the wrapper (which it is by default)"
 		/size sz [pair! decimal!] "when decimal! its a scale of the screen-size."
 		/center
@@ -1953,6 +1968,11 @@ slim/register [
 			]
 		]
 		
+		if offset [
+			fill* wrapper/aspects/offset offset
+		]
+		
+		
 		if all [
 			not only
 			in wrapper 'display
@@ -2011,7 +2031,12 @@ slim/register [
 				; SPECIFY CAN MANIPULATE AND EVEN REPLACE THE SUPPLIED MARBLE... do not expect
 				; the return marble to be the same as the one we supply to gl-specify.
 				;
+				gbl-mrbl: marble
 				marble: marble/valve/gl-specify marble spec stylesheet		
+				;unless same? gbl-mrbl marble [
+				;	probe "AHA"
+				;	halt
+				;]
 			]
 			
 		][
