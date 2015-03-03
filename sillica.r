@@ -121,13 +121,13 @@ slim/register [
 	min*: :min
 	
 
-
-	
-
-	;--------------------------------------------------------
-	;-   
+	;-                                                                                                       .
+	;-----------------------------------------------------------------------------------------------------------
+	;
 	;- GLOBALS
 	;
+	;-----------------------------------------------------------------------------------------------------------
+
 	;-    master-stylesheet:
 	; the default master marble stylesheet
 	; stored as pairs of style names and reference marble objects
@@ -146,7 +146,6 @@ slim/register [
 	clip-regions: []
 	
 	
-	
 	;-    debug-mode?:
 	;
 	; this is a level based setup.
@@ -160,62 +159,121 @@ slim/register [
 	;-    glass-debug-dir:
 	set 'glass-debug-dir join what-dir %debug/
 	
-
+	;-                                                                                                       .
+	;-----------------------------------------------------------------------------------------------------------
+	;
 	;- THEME
+	;
+	;-----------------------------------------------------------------------------------------------------------
+
 	;base-font: make face/font [style: none size: 13 name: "Trebuchet MS"]
 	;base-font: make face/font [style: none size: 13 name: "Arial"]
 	;base-font: make face/font [style: none size: 13 name: "Tahoma"]
 	;base-font: make face/font [name: "verdana" size: 13 style: none bold?: false]
+
 	
-	;-        -fonts
-	base-font: make face/font [name: "Tahoma" size: 13 style: none bold?: false]
-	base-font: make face/font [name: "Trebuchet MS" size: 13 style: none bold?: false]
-	base-font: make face/font [name: "Lao UI" size: 13 style: none bold?: false]
-	base-font: make face/font [name: "Segoe UI" size: 13 style: none bold?: false]
-	base-font: make face/font [name: "Arial" size: 13 style: none bold?: false]
-	
+;	base-font: make face/font [name: "Tahoma" size: 13 style: none bold?: false]
+;	base-font: make face/font [name: "Trebuchet MS" size: 13 style: none bold?: false]
+;	base-font: make face/font [name: "Lao UI" size: 13 style: none bold?: false]
+;	base-font: make face/font [name: "Arial" size: 14 style: none bold?: false]
+	base-font: any [
+		all [
+			value? 'glass-font-overide
+			glass-font-overide
+		]	
+		
+		;---
+		; this font is used if no other font is specified in the source before
+		; loading sillica.
+		make face/font [name: "Segoe UI" size: 13 style: none bold?: false]
+		
+	]
 	mono-font: make face/font [name: font-fixed bold?: false char-width: 7]
 	
+	
+	;----------------------------------
+	;-     default BASE theme values
+	;
+	; these have to evaluate as absolute values, they will be used
+	; by other derived theme values
+	;--------------------------------------
+	set 'theme-mono-font mono-font
 	set 'theme-base-font base-font 
+	set 'theme-bg-color  white * 0.85
+	set 'theme-color 40.100.255
+	set 'theme
 	
-	set 'theme-knob-font make base-font [size: 15 ];  bold?: true]
-	set 'theme-small-knob-font make base-font [size: 11 bold?: none]
-	set 'theme-menu-item-font make base-font [size: 11 bold?: none]
-	set 'theme-list-font make base-font [size: 11]
 	
-	set 'theme-field-font make mono-font [size: 12]
-	set 'theme-editor-font make mono-font [size: 12]
 	
-	set 'theme-label-font make base-font [size: 11  ] ;aliased?: true]
-	set 'theme-headline-font make base-font [size: 13  bold?: true]
-	set 'theme-title-font make base-font [size: 20]
-	set 'theme-subtitle-font make base-font [size: 15 bold?: true]
-	set 'theme-requestor-title-font make base-font [size: 14 bold?: true]
+	;----------------------------------
+	; custom theme management
+	;
+	; use this to set the core (BASE) theme values.
+	;--------------------------------------
+	attempt [
+		;slim/von
+		slim/open 'app-theme-base none
+	]
+	
+	
+	
+	;-        -fonts
+	;----------------------------------
+	; default theme management
+	;--------------------------------------
+	set 'theme-knob-font make theme-base-font [size: 14 ];  bold?: true]
+	set 'theme-small-knob-font make theme-base-font [size: 12 bold?: none]
+	set 'theme-menu-item-font make theme-base-font [size: 12 bold?: none]
+	set 'theme-list-font make theme-base-font [size: 11]
+	
+	set 'theme-field-font make theme-mono-font [size: 12]
+	set 'theme-editor-font make theme-mono-font [size: 12]
+	
+	set 'theme-label-font make theme-base-font [size: 12  ] ;aliased?: true]
+	set 'theme-headline-font make theme-base-font [size: 13  bold?: true]
+	set 'theme-title-font make theme-base-font [size: 20]
+	set 'theme-subtitle-font make theme-base-font [size: 15 bold?: true]
+	set 'theme-requestor-title-font make theme-base-font [size: 14 bold?: true]
 	set 'theme-editor-char-width 7
 	set 'theme-field-char-width 7
+	
+	set 'theme-frame-font make theme-base-font [size: 19 ] ; bold?: true]
 			
 	
 	;-        -colors
 	; these are set globally
-	set 'theme-color blue
 	set 'shadow 0.0.0.128
 	set 'light-shadow 0.0.0.200
-	set 'theme-bg-color white * .85
-	set 'theme-hi-color gold
-	set 'theme-recess-color white * .6
+	set 'theme-hi-color theme-color + 0.0.0.150
+	set 'theme-recess-color theme-bg-color * .95
 	set 'theme-window-color theme-bg-color
-	set 'theme-border-color white * .4
-	set 'theme-knob-border-color white * .3
-	set 'theme-knob-color white * .9
+	set 'theme-border-color white * 0.75
+	set 'theme-knob-border-color white * 0.75
+	set 'theme-knob-color white * 0.85
 	set 'theme-glass-color theme-color
 	set 'theme-glass-transparency 175
-	set 'theme-bevel-color white * .85
-	set 'theme-requestor-bg-color white * .89
+	set 'theme-bevel-color white * 0.85
+	set 'theme-requestor-bg-color white * 0.89
 	set 'theme-progress-bg-color white
+	
+	set 'theme-frame-color white * 0.4
+	set 'theme-frame-label-color white 
+	set 'theme-frame-bg-color theme-bg-color
 	
 	
 	set 'theme-editor-comment-color blue
 	
+
+
+	;----------------------------------
+	; custom theme management
+	;
+	; you do not need to change all theme values, and you MUST use above set method, since they are defined globally.
+	;--------------------------------------
+	attempt [
+		slim/open 'app-theme-custom none
+	]
+
 
 
 	empty-face: make face [
@@ -232,47 +290,140 @@ slim/register [
 	]
 	
 
-	;-    text-sizer:
+	;-     Text-sizer: [ ... ]
 	text-sizer: make empty-face [
 		size: 200x200
 		para: make para [wrap?: false]
-		font: base-font
+		font: theme-base-font
 	]
 	
 	
-	;-    label-text-sizer:
+	;-     Label-text-sizer: [ ... ]
 	; this is used exclusively by the label-dimension function
 	label-text-sizer: make face [
 		size: 200x200 
 		para: make para [wrap?: false]
 		edge:  none
-		font: base-font
+		font: theme-base-font
 		para: make para []
 		para/origin: 0x0
 		para/margin: 0x0
-
-
 	]
 	
+	
+	
+	;--------------------------
+	;-     Line-rendering-ctx: [ ... ]
+	;
+	; used to store optional line rendering specifications.
+	;
+	; these include image prefix, indents, colors and more.
+	;
+	; this is shared in multiple functions.
+	;
+	; most values can be set to none and ignored by function using/managing it.
+	;--------------------------
+	line-rendering-ctx: context [
+		text-color: black  ; tuple!    -  sets the text color (careful, if none, line will render invisible)
+		bg-color:   none  ; tuple!    -  draws an opaque bg behind the line of text (if none, we leave bg intact)
+		edge-color: none   ; tuple!    -  draws a box around a line of text
+		
+		indent: 0          ; integer!  -  MUST ALWAYS BE AN INT  -  an indent to put the line at, clipping will adjust for this. 
+		
+		image: none        ; image!    -  centers an image to the left of line start. is affected by indent.
+		
+		width: none        ; integer!  -  clips text to this width.
+		
+		font: base-font    ; object!   -  use this font in size calculations and rendering.
+		
+		text: none         ; string!   -  the text to display for the line (may be clipped)
+		clipped?: false    ; logic!    -  is the text currently clipped?
+		                   ;              when text is changed, clipped? should be reset to false.
+		
+		sizer: text-sizer  ; object!   -  MUST be set to a face setup for use in text sizing operations.
+		                   ;              the default should never have to be changed 
+		                   
+;		arrow?: none       ; logic!    -  if true, an arrow is displayed when text is clipped.
+		
+		
+		
+		defaults: [
+			text-color: black  ; tuple!    -  sets the text color (careful, if none, line will render invisible)
+			bg-color:   none  ; tuple!    -  draws an opaque bg behind the line of text (if none, we leave bg intact)
+			edge-color: none   ; tuple!    -  draws a box around a line of text
+			
+			indent: 0          ; integer!  -  MUST ALWAYS BE AN INT  -  an indent to put the line at, clipping will adjust for this. 
+			
+			image: none        ; image!    -  centers an image to the left of line start. is affected by indent.
+			
+;			font: none         ; object!   -  use this font in size calculations and rendering.
+			
+			text: none         ; string!   -  the text to display for the line (may be clipped)
+			clipped?: false    ; logic!    -  is the text currently clipped?
+			                   ;              when text is changed, clipped? should be reset to false.
+		]
+		
+		;--------------------------
+		;-         set-defaults()
+		;--------------------------
+		; purpose:  give a block to execute at each call to reset.  this block is bound to the spec, 
+		;           so it doesn't need to be bound for each line.  
+		;
+		;           also note that since the block is bound, it is faster than using object lookup. [spec/font: none] is slower than [ font: none]
+		;
+		; inputs:   a block of code to execute at each reset() 
+		;
+		; notes:    be careful, you may end up running code outside the spec (but may do so voluntarily :-)
+		;
+		;           words in given block will keep their binding if they are not part of spec.
+		;--------------------------
+		set-defaults: funcl [
+			defaults-script [block!]
+		][
+			vin "set-defaults()"
+			self/defaults: bind/copy defaults-script self
+			vout
+		]
+		
+		;--------------------------
+		;-         reset()
+		;--------------------------
+		; purpose:  reset attributes which typically change from one line to another in a list.
+		;--------------------------
+		reset: funcl [
+		][
+			vin "reset()"
+			if block? self/defaults [
+				do self/defaults
+			]			
+			vout
+		]
+	]
+	
+	
+	
 
 
 	
-	;--------------------------------------------------------
+	;-                                                                                                       .
+	;-----------------------------------------------------------------------------------------------------------
 	;-   
 	;- PARSE RULES
 	;
+	;-----------------------------------------------------------------------------------------------------------
 	non-space: complement charset " "
-	
 	set '**letter charset [#"a" - #"z" #"A" - #"Z"]
 	set '**whitespace charset "^- ^/"
 	
 	
-	;--------------------------------------------------------
-	;-   
+
+	;-                                                                                                       .
+	;-----------------------------------------------------------------------------------------------------------
+	;
 	;- UTILITY FUNCTIONS
 	;
-	
-	
+	;-----------------------------------------------------------------------------------------------------------
+
 	
 	;--------------------------
 	;-     new-bulk-list()
@@ -303,11 +454,13 @@ slim/register [
 	
 	
 	
-	;--------------------------------------------------------
-	;-   
+	;-                                                                                                       .
+	;-----------------------------------------------------------------------------------------------------------
+	;
 	;- EVENT FUNCTIONS
 	;
-	
+	;-----------------------------------------------------------------------------------------------------------
+
 	;--------------------------
 	;-     do-event()
 	;--------------------------
@@ -426,12 +579,13 @@ slim/register [
 	
 	
 	
-	;--------------------------------------------------------
-	;-   
+	;-                                                                                                       .
+	;-----------------------------------------------------------------------------------------------------------
+	;
 	;- RENDERING MANAGEMENT
 	;
-	;
-	
+	;-----------------------------------------------------------------------------------------------------------
+
 	;--------------------------
 	;-     clip-to-marble()
 	;--------------------------
@@ -467,13 +621,134 @@ slim/register [
 	]
 	
 	
+	;-                                                                                                       .
+	;-----------------------------------------------------------------------------------------------------------
+	;
+	;- LINE RENDERING FUNCTIONS
+	;
+	; all of the following function use and manipulate the 'line-rendering-ctx object!
+	;-----------------------------------------------------------------------------------------------------------
+
 	
-	;--------------------------------------------------------
-	;-   
+	;--------------------------
+	;-     clip-string()
+	;--------------------------
+	; purpose:  given a line-spec sets the text-end based on current line-spec values.
+	;
+	; inputs:   
+	;
+	; returns:  
+	;
+	; notes:    we return a block with two values, it is always the same block reference.
+	;           the returned string is always a COPY of the input string.
+	;
+	; to do:    
+	;
+	; tests:    
+	;--------------------------
+	clip-string: funcl [
+		spec [object!]
+		;text [string!]  "String to render"
+		;line-spec [block! none!] "Advanced line drawing specs, used in various styles.  each line in a list uses its own."
+		;width [integer!]  "max width of line, in pixels"
+		;text-sizer [object!] "given here, so we don't have to manipulate it at each string, in a list."
+	][
+		vin "clip-string()"
+		;print ">>>>>>>>>>>>>>>>>>>>>>"
+		;rval: clear head [] ; reused in each call to clip-string() to save processing. its your job to make sure to copy any values, if you need to.
+		
+		width: spec/width
+		;?? width
+		indent: spec/indent
+		;?? indent
+		caret: 1x0 * ( spec/width - spec/indent ) + -1x5
+		;?? caret
+		text: trim/tail spec/text
+		;?? text
+		spec/sizer/text: text
+		spec/sizer/font: spec/font
+		text-end: offset-to-caret spec/sizer caret
+		;?? text-end
+
+		;----
+		; make space for arrow
+		either empty? text-end [
+			spec/clipped?: false
+			spec/text: text
+		][
+			spec/text: copy/part text text-end
+			spec/clipped?: true
+		]
+		
+		;print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"		
+		vout
+		;rval
+		spec
+	]
+	
+	
+	
+	
+	;--------------------------
+	;-     apply-spec()
+	;--------------------------
+	; purpose:  applies the given spec into a line-rendering-ctx object.
+	;
+	; inputs:   a spec block which is parsed.
+	;
+	; returns:  the input ctx
+	;
+	; notes:    
+	;
+	; to do:    
+	;
+	; tests:    
+	;--------------------------
+	apply-spec: funcl [
+		lctx [object!]
+		spec [block!]
+	][
+		vin "apply-spec()"
+		
+		clr-counter: 1
+		
+		; we silently ignore any incompatible data... these might be used by other subsystems.
+		parse/all spec [
+			any [
+				set data integer! (
+					lctx/indent: data
+				)
+				| set data tuple! (
+					switch clr-counter [
+						1 [lctx/text-color: data]
+						2 [lctx/bg-color: data]
+						3 [lctx/edge-color: data]
+					]
+					++ clr-counter
+				)
+				
+				| set data object! (
+					lctx/font: data
+				)
+				
+				| set data image! (
+					lctx/image: data
+				)
+				
+				| skip
+			]
+		]
+		vout
+	]
+		
+	
+	
+	;-                                                                                                       .
+	;-----------------------------------------------------------------------------------------------------------
+	;
 	;- GRAPHIC PRIMITIVE FUNCTIONS
 	;
-	;
-
+	;-----------------------------------------------------------------------------------------------------------
 	;-----------------
 	;-    label-dimension()
 	;-----------------
@@ -565,7 +840,7 @@ slim/register [
 		
 		; make sure box fits some text
 		width: 1x0 * width +  -1x5
-		text-sizer/size: 1000x100
+		text-sizer/size: 10000x100
 		text-sizer/para/wrap?: false
 		text-sizer/font: font
 		
@@ -585,6 +860,7 @@ slim/register [
 				item: trim/tail first strings
 				text-sizer/text: item
 				item-end: offset-to-caret text-sizer width
+				
 				; make space for arrow
 				either empty? item-end [
 					item-end: none
@@ -1016,7 +1292,7 @@ slim/register [
 	;
 	; given a bulk, construct n draw block which represents it, clipped to a specifed area.
 	;-----------------
-	prim-list: func [
+	prim-list: funcl [
 		position [pair!]
 		dimension [pair!] ; items will be shown until dimension height is hit
 		font [object!]
@@ -1027,10 +1303,52 @@ slim/register [
 		pen [tuple! none!]
 		fill-pen [tuple! none!]
 		/arrows "add arrows to indicate the text goes out of bounds of list"
-		/local end blk label payload columns line-height i pos length arrow-offset list text highlight-start
-			   label-column spaces number-of-lines
+;		/local end blk label payload columns line-height i pos length arrow-offset list text highlight-start
+;			   label-column spaces number-of-lines spec-column 
+;			   
+;			   spec
 	][
 		vin [{prim-list()}]
+
+		;==========================================
+		;align?: font/align
+		;
+		;; make sure box fits some text
+		;width: 1x0 * width +  -1x5
+		;text-sizer/size: 1000x100
+		;text-sizer/para/wrap?: false
+		;text-sizer/font: font
+		;
+		;text-sizer/font/align: 'left
+		;text-sizer/edge:  none
+		;text-sizer/font/offset: 0x0
+		;text-sizer/para/origin: 0x0
+		;text-sizer/para/margin: 0x0
+		;
+		;unless block? strings [
+		;	strings: compose [(string)]
+		;]
+		;
+		;unless empty? strings [
+		;	until [
+		;		item-end: ""
+		;		item: trim/tail first strings
+		;		text-sizer/text: item
+		;		item-end: offset-to-caret text-sizer width
+		;		; make space for arrow
+		;		either empty? item-end [
+		;			item-end: none
+		;		][
+		;			item-end: -1 + index? item-end 
+		;		]
+		;		strings: change/part strings reduce [item  item-end] 1
+		;		
+		;		tail? strings
+		;	]
+		;]
+		;; restore original text alignment.
+		;font/align: align?
+		;==========================================
 		
 		columns: 2 ; this might be programable at some point.
 		blk: head clear head [] ; we reuse the same block at each eval.
@@ -1047,25 +1365,33 @@ slim/register [
 			get-bulk-property items 'label-column 
 			1
 		]
-		
+		spec-column: any [
+			get-bulk-property items 'gfx-spec-column 
+			2
+		]
 		
 		line-height: font/size + leading * 0x1
 		number-of-lines: to-integer ( dimension/y  /  line-height/y )
 		
+		in-items: items
 		
-		items: extract/index  (copy/part at next items ((start - 1) * columns + 1) (number-of-lines * columns)) columns column
+		;?? number-of-lines
+		
+		items: extract/index  (copy/part at next in-items ((start - 1) * columns + 1) (number-of-lines * columns)) columns column
+		specs: extract/index  (copy/part at next in-items ((start - 1) * columns + 1) (number-of-lines * columns)) columns spec-column
+		
+		unless block? pick specs 1 [
+			specs: none
+		]
 		
 		;v?? new-items
 		
-		new-line/all items true
+		;new-line/all items true
 		
 		;vprint length? items
 		;v?? columns
 		;v?? column
 		
-		;v?? items
-		
-		;ask ">>"
 		
 		
 		;items: extract copy/part (at next items column columns) (number-of-lines * columns)
@@ -1074,16 +1400,140 @@ slim/register [
 		;data-list: at data-list start - 1 * columns + 1
 		
 		; manage font-related stuff
-		text-sizer/font: any [font base-font]
+		text-sizer/font: any [font theme-base-font]
 		
 		chosen: any [chosen []]
 		
+		;print "--------------------------------------"
+		;probe 
+		i: 0
+		s: none
+		itms: copy items
 		
-		; accumulate list to draw, 
-		clip-strings list: items  dimension  font
+		lctx: line-rendering-ctx
 		
+		lctx/set-defaults compose [
+			clipped?: false
+			text-color: black
+			;width: dimension/x
+			bg-color: none
+		]
+		lctx/font: any [font theme-base-font]
+		lctx/width: dimension/x
+
+		text-sizer/size: 10000x100
+		text-sizer/para/wrap?: false
+		text-sizer/edge:  none
+		text-sizer/font/offset: 0x0
+		text-sizer/para/origin: 0x0
+		text-sizer/para/margin: 0x0
+
+
+		font-align: lctx/font/align
+		lctx/font/align: 'left
+		;lctx/font/valign: 'top
+
+pos-mem: position
+		unless empty? itms [
+			insert tail blk reduce [
+				'font font 
+				'line-width 0 
+				pen (red) 
+				fill-pen (blue)
+			]
+			until [
+				i: i + 1
+				t: take itms
+				if specs [
+					s: take specs
+				]
+				lctx/reset
+				if s [ apply-spec lctx s	]
+				
+				;lctx/edge-color: ( random white) + gray 
+				if any [
+					;odd? i
+					lctx/bg-color
+					lctx/edge-color
+				][
+					;lctx/bg-color: any [lctx/bg-color white]
+					;if odd? i [lctx/bg-color: lctx/bg-color - 20.20.20]
+					insert tail blk compose [
+						pen (lctx/edge-color)
+						fill-pen (lctx/bg-color)
+						box (position + 0x1) (position + line-height + (dimension * 1x0))
+					]
+				]
+				if t [
+					lctx/text: copy t
+					
+					clip-string lctx
+
+					; manage spaces at head
+					spaces: 0
+					parse/all lctx/text [any [#" " (spaces: spaces + 1) | thru end]]
+					;?? spaces
+					
+					insert tail blk compose [line-width 0 fill-pen (lctx/text-color) pen none]
+					insert tail blk 'text
+					insert tail blk position + (1x0 * lctx/indent) + (leading / 2 * 0x1 + 2x-1) + (spaces  * font/size / 2 * 1x0)
+					insert tail blk trim lctx/text
+					insert tail blk 'vectorial
+
+
+
+;				if all [length arrows][
+;					text-sizer/text: text
+;					;arrow-offset: size-text text-sizer 
+;					arrow-offset: dimension/x  - 2
+;					
+;					insert tail blk compose [pen 255.255.255.125 fill-pen 255.255.255.50 ]
+;					insert tail blk prim-arrow (arrow-offset * 1x0 + position + (line-height / 2) + 3x1 ) 13x10 'bullet 'right
+;					
+;					insert tail blk compose [ pen 0.0.0.150 fill-pen 0.0.0.200 ]
+;					insert tail blk prim-arrow (arrow-offset * 1x0 + position + (line-height / 2) + 2x1 ) 6x7 'bullet 'right
+;					
+;					insert tail blk compose [pen (pen) fill-pen (fill-pen) ]
+;				]
+				
+
+
+
+
+				]
+				
+				;---
+				; increment position even if no text at current list item.
+				position: position + line-height
+				
+				
+				any [
+					tail? itms
+					position/y + line-height/y > end/y 
+;					[
+;						;---
+;						; just in case our previous calculations where off.
+;						print position/y + line-height/y
+;						print position/y
+;						print line-height/y
+;						print end/y
+;						print "OOPS !!!"
+;						probe length? itms
+;						ask "~~"
+;						itms: tail itms
+;					]
+				]
+				
+			]
+		]
+		;print "----"
+
 
 		
+position: pos-mem
+		; accumulate list to draw, 
+		clip-strings list: items  dimension  font
+		;probe list
 		unless empty? list [
 			insert tail blk reduce ['font font 'line-width 0 pen (pen) fill-pen (fill-pen)]
 			until [
@@ -1098,22 +1548,29 @@ slim/register [
 				][label]
 				;insert tail blk [box -1x-1 -1x-1]
 				; convert leading spaces to pos offset (cures a BAD rendering bug with text)
-				spaces: 0
-				parse/all label [any [#" " (spaces: spaces + 1) | thru end]]
-				;?? spaces
 				
-				insert tail blk 'text
-				insert tail blk position + (leading / 2 * 0x1 + 2x-1) + (spaces  * font/size / 2 * 1x0)
-				insert tail blk trim/head copy text
-				insert tail blk 'vectorial
-				
-				if all [length arrows][
-					insert tail blk compose [pen 0.0.0.200 fill-pen 0.0.0.200 ]
-					text-sizer/text: text
-					arrow-offset: size-text text-sizer 
-					insert tail blk prim-arrow (arrow-offset/x * 1x0 + position + (line-height / 2) + 3x1 ) 7x7 'bullet 'right
-					insert tail blk compose [pen (pen) fill-pen (fill-pen) ]
-				]
+;				spaces: 0
+;				parse/all label [any [#" " (spaces: spaces + 1) | thru end]]
+;				;?? spaces
+;				
+;				insert tail blk 'text
+;				insert tail blk position + (leading / 2 * 0x1 + 2x-1) + (spaces  * font/size / 2 * 1x0)
+;				insert tail blk trim/head copy text
+;				insert tail blk 'vectorial
+;				
+;				if all [length arrows][
+;					text-sizer/text: text
+;					;arrow-offset: size-text text-sizer 
+;					arrow-offset: dimension/x  - 2
+;					
+;					insert tail blk compose [pen 255.255.255.125 fill-pen 255.255.255.50 ]
+;					insert tail blk prim-arrow (arrow-offset * 1x0 + position + (line-height / 2) + 3x1 ) 13x10 'bullet 'right
+;					
+;					insert tail blk compose [ pen 0.0.0.150 fill-pen 0.0.0.200 ]
+;					insert tail blk prim-arrow (arrow-offset * 1x0 + position + (line-height / 2) + 2x1 ) 6x7 'bullet 'right
+;					
+;					insert tail blk compose [pen (pen) fill-pen (fill-pen) ]
+;				]
 				
 				either find-same chosen label [
 					unless highlight-start [
@@ -1268,6 +1725,40 @@ slim/register [
 		blk
 	]
 	
+
+
+	;--------------------------
+	;-    prim-drop-shadow()
+	;--------------------------
+	; purpose:  adds a drop shadow around a square region
+	;
+	; notes:    only returns the draw block, you must still render it 
+	;
+	; to do:    add theme controls
+	;--------------------------
+	prim-drop-shadow: funcl [
+		position [pair!]
+		dimension [pair!]
+		corner [integer!]
+	][
+		;vin "prim-drop-shadow()"
+		end: position + dimension
+		blk: compose [
+			fill-pen none
+			pen 0.0.0.200
+			box (position - 1x1) (end + 1x1) (corner + 1)
+			pen  0.0.0.227
+			box (position - 2x2) (end + 2x2) (corner + 2)
+			pen  0.0.0.245
+			box (position - 3x3) (end + 3x3) (corner + 3)
+			pen  0.0.0.250
+			box (position - 4x4) (end + 4x4) (corner + 4)
+		]
+		
+		;vout
+		blk
+	]
+
 	
 	
 	;-----------------
@@ -1309,11 +1800,11 @@ slim/register [
 						compose [
 							; shadow
 							pen none
-							fill-pen linear ( e: (position + (dimension * 0x1) + 1x1)) 1 (4) 90 1 1 
+							fill-pen linear ( e: (position + (dimension * 0x1) + 1x1)) 1 (5) 90 1 1 
 								(0.0.0.180) 
 								(0.0.0.240) 
 								(0.0.0.255 )
-							box (e + -1x-6) (e + (dimension * 1x0) + 0x3) (corner)
+							box (e + -1x-6) (e + (dimension * 1x0) + 0x4) (corner)
 						]
 					]
 				)
@@ -1365,11 +1856,13 @@ slim/register [
 						compose [
 							; shadow
 							pen none
-							fill-pen linear ( e: (position + (dimension * 0x1) + 1x1)) 1 (4) 90 1 1 
-								(0.0.0.200) 
-								(0.0.0.240) 
-								(0.0.0.255 )
-							box (e + -1x-6) (e + (dimension * 1x0) + 0x1) (corner)
+;							fill-pen linear ( e: (position + (dimension * 0x1) + 1x1)) 1 (2) 90 1 1 
+;								(0.0.0.190) 
+;								(0.0.0.243) 
+;								(0.0.0.255 )
+							;fill-pen (red)
+							;box (e + -1x-6) (e + (dimension * 1x0) + 0x2) (corner)
+							(prim-drop-shadow position dimension corner)
 						]
 					]
 				)
@@ -1611,7 +2104,7 @@ slim/register [
 			[
 				line-width 1
 				pen border-color
-				fill-pen linear (position) 1 (dimension/x) 0 1 1  (color * 0.8 ) ( color ) ( color * 0.8 + (white * .2))
+				fill-pen linear (position) 1 (dimension/x) 0 1 1  (color * 0.9 ) ( color ) ( color * 0.8 + (white * .2))
 				box (position) (position + dimension) 3
 				
 ;				fill-pen 255.255.255.150
@@ -1623,7 +2116,7 @@ slim/register [
 			[
 				line-width 1
 				pen border-color
-				fill-pen linear (position) 1 (dimension/y) 90 1 1  (color * 0.8 ) ( color ) ( color * 0.8 + (white * .2))
+				fill-pen linear (position) 1 (dimension/y) 90 1 1  (color * 0.9 ) ( color ) ( color * 0.8 + (white * .2))
 				box (position) (position + dimension) 3
 			]
 		]
@@ -1655,7 +2148,7 @@ slim/register [
 		blk: compose [
 				; bg
 				line-width 0
-				fill-pen (bg)
+				fill-pen ( bg )
 				pen none
 				box (p ) (p + d ) 3
 		
@@ -1859,11 +2352,12 @@ slim/register [
 	]	
 
 	
-	;--------------------------------------------------------
-	;-   
-	;- LOW-LEVEL GLASS FUNCS
-	;-----------------
-
+;-                                                                                                       .
+;-----------------------------------------------------------------------------------------------------------
+;
+;- LOW-LEVEL GLASS FUNCS
+;
+;-----------------------------------------------------------------------------------------------------------
 	;-     layout()
 	;-----------------
 	; this is used to construct whole interfaces, based on a static specification.
@@ -2090,9 +2584,13 @@ slim/register [
 	
 	
 	
-	;--------------------------------------------------------
-	;-   
-	;- LAYOUT HELPERS
+;-                                                                                                       .
+;-----------------------------------------------------------------------------------------------------------
+;
+;- LAYOUT HELPERS
+;
+;-----------------------------------------------------------------------------------------------------------
+	
 	;-----------------
 	;-     relative-marble?()
 	; returns true if the supplied marble meets the conditions for managed relative positioning.
@@ -2213,12 +2711,13 @@ slim/register [
 	
 	
 	
-	
-	
-	
-	;--------------------------------------------------------
-	;-   
+	;-                                                                                                       .
+	;-----------------------------------------------------------------------------------------------------------
+	;
 	;- STYLE MANAGEMENT
+	;
+	;-----------------------------------------------------------------------------------------------------------
+	
 	;-----------------
 	;-     collect-style()
 	;-----------------
@@ -2280,12 +2779,13 @@ slim/register [
 	]
 	
 	
-	
-	
-	
-	;--------------------------------------------------------
-	;-  
+	;-                                                                                                       .
+	;-----------------------------------------------------------------------------------------------------------
+	;
 	;- GUI SPEC MANAGEMENT
+	;
+	;-----------------------------------------------------------------------------------------------------------
+	
 	;-----------------
 	;-    regroup-specification()
 	; take a spec block and break it up according to style names

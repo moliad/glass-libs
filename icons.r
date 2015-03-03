@@ -595,11 +595,11 @@ FEFFFFFF
 	;
 	; if it doesn't exist, we return a fallback icon (a blue marble) 
 	;-----------------
-	get-icon: func [
+	get-icon: funcl [
 		name [word!]
 		/set set-name
 		/image "returns the image, not the plug, of the icon"
-		/local plug icon
+		;/local plug icon
 	][
 		vin [{get-icon()}]
 				

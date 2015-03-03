@@ -92,6 +92,7 @@ slim/register [
 		prim-x
 		prim-label
 		prim-knob
+		prim-drop-shadow
 		top-half
 		bottom-half
 		do-action 
@@ -114,30 +115,29 @@ slim/register [
 			; some buttons can be highlighted (ex: ok/cancel in requestors)
 			focused?: false
 			
-			;-        pressed?:
+			;-        selected?:
 			selected?: false
 			
-		
 			;-        label:
 			label: "button"
-			
 			
 			;-        color:
 			color: theme-knob-color
 
+			;-        border-color:
+			border-color: theme-knob-color * 0.9
 
 			;-        label-color:
 			label-color: black
 			
-			
 			;-        font
 			font: theme-knob-font
-			
 			
 			;-        hidden?
 			hidden?: false
 			
-			
+			;-        corner
+			corner: 3
 		]
 
 		
@@ -173,6 +173,7 @@ slim/register [
 						position !pair (random 200x200)
 						dimension !pair (100x30)
 						color !color  (random white)
+						border-color !color (random white)
 						label-color !color  (random white)
 						label !string ("")
 						focused? !bool
@@ -182,6 +183,7 @@ slim/register [
 						padding !pair
 						font !any
 						hidden? !bool
+						corner !integer
 					]
 					
 					;-            glob/gel-spec:
@@ -189,12 +191,20 @@ slim/register [
 					; these are bound and composed relative to the input being sent to glob at process-time.
 					gel-spec: [
 						; event backplane
-						position dimension 
+						position dimension hidden?
 						[
-							line-width 1 
-							pen none 
-							fill-pen (to-color gel/glob/marble/sid) 
-							box (data/position=) (data/position= + data/dimension= - 1x1)
+							(
+								either data/hidden?= [
+									[]
+								][
+									compose [
+										line-width 1 
+										pen none 
+										fill-pen (to-color gel/glob/marble/sid) 
+										box (data/position=) (data/position= + data/dimension= - 1x1)
+									]
+								]
+							)
 						]
 						
 						; bg layer (ex: shadows, textures)
@@ -202,7 +212,7 @@ slim/register [
 						;[]
 						
 						; fg layer
-						position dimension color label-color label align hover? focused? selected? padding font hidden?
+						position dimension corner color border-color label-color label align hover? focused? selected? padding font hidden?
 						[
 							(
 								either data/hidden?= [
@@ -216,30 +226,35 @@ slim/register [
 												pen none
 												line-width 0
 												fill-pen linear (data/position=) 1 (data/dimension=/y) 90 1 1 ( data/color= * 0.6 + 128.128.128) ( data/color= ) (data/color= * 0.7 )
-												box (data/position= + 1x1) (data/position= + data/dimension= - 1x1) 2
+												box (data/position= + 1x1) (data/position= + data/dimension= - 1x1) (data/corner= - 1)
 		
 												; shine
 												pen none
 												fill-pen (data/color= * 0.7 + 140.140.140.128)
-												box ( top-half  data/position= data/dimension= ) 2
+												box ( top-half  data/position= data/dimension= ) (data/corner= - 1)
 												
 												;inner shadow
 												pen shadow ; 0.0.0.50
 												line-width 2
 												fill-pen none
-												box (data/position= + 1x1) (data/position= + data/dimension= - 2x2) 2
+												box (data/position= + 1x1) (data/position= + data/dimension= - 2x2) (data/corner= - 1)
 		
 												pen none
 												line-width 0
 												fill-pen linear (data/position=) 1 (data/dimension=/y) 90 1 1 ( data/color= * 0.6 + 128.128.128) ( data/color= ) (data/color= * 0.7 )
-												box (pos: (data/position= + (data/dimension= * 0x1) - -2x10)) (data/position= + data/dimension= - 2x1) 2
+												box (pos: (data/position= + (data/dimension= * 0x1) - -2x10)) (data/position= + data/dimension= - 2x1) (data/corner= - 1)
 		
 												; border
 												fill-pen none
 												line-width 1
-												pen  theme-knob-border-color
-												box (data/position= ) (data/position= + data/dimension= - 1x1) 3
+												pen  (data/border-color=)
+												box (data/position= ) (data/position= + data/dimension= - 1x1) (data/corner= )
 	
+												line-width 1
+												pen none
+												fill-pen (theme-glass-color + 0.0.0.175)
+												;pen theme-knob-border-color
+												box (data/position= + 3x3) (data/position= + data/dimension= - 3x3) 2
 	
 											]
 										]
@@ -247,30 +262,69 @@ slim/register [
 										; default
 										compose [
 											(
-												prim-knob 
-													data/position= 
-													data/dimension= - 1x1
-													data/color=
-													theme-knob-border-color
-													'horizontal ;data/orientation=
-													1
-													4
+;												prim-knob 
+;													data/position= 
+;													data/dimension= - 1x1
+;													data/color=
+;													theme-knob-border-color
+;													'horizontal ;data/orientation=
+;													2
+;													(data/corner= )
 											)
+											fill-pen (data/color=)
+											pen (data/border-color=)
+											line-width 1
+											box (data/position= ) (data/position= + data/dimension= - 1x1) (data/corner= )
 										]
 									]
 								]
 							)
 							(
+							;------------------------
+							; hover highlight
 							either all [
 								data/hover?=
+								not data/selected?=
 								not data/hidden?=
 							][
 								compose [
+									(
+;										prim-knob 
+;											data/position= 
+;											data/dimension= - 1x1
+;											data/color=
+;											theme-knob-border-color
+;											'horizontal ;data/orientation=
+;											4
+;											(data/corner= )
+													
+									)
 									line-width 1
 									pen none
-									fill-pen (theme-glass-color + 0.0.0.200)
-									;pen theme-knob-border-color
-									box (data/position= + 3x3) (data/position= + data/dimension= - 3x3) 2
+									fill-pen (
+										;--------
+										; if the color was manually changed... 
+										; set its bg to that color, instead of pure white.
+										;---
+										either data/color= <> theme-knob-color [
+											data/color=
+										][
+											white
+										]
+									)
+									box (data/position=) (data/position= + data/dimension= - 1x1 ) (data/corner=)
+									fill-pen (theme-glass-color + 0.0.0.175)
+									pen (
+										(theme-glass-color + 0.0.0.175)
+									) 
+									box (data/position=) (data/position= + data/dimension= - 1x1 ) (data/corner=)
+									(prim-drop-shadow data/position=  data/dimension= - 1x1   data/corner= )
+									
+									
+;									line-width 2
+;									fill-pen none
+;									pen (data/color=)
+;									box (data/position= + 3x3 ) (data/position= + data/dimension= - 1x1 - 3x3 ) (max 0 data/corner= - 1)
 								]
 							][[]]
 							)
@@ -527,8 +581,10 @@ slim/register [
 							]
 						)
 						
-						| set data [integer!] (
-							fill* marble/aspects/corner data
+						| set data integer! (
+							sz: content* marble/material/min-dimension
+							sz/x: data
+							fill* marble/material/min-dimension sz
 						) 
 						
 						| set data tuple! (

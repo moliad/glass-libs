@@ -107,6 +107,9 @@ slim/register [
 		detach*: detach
 	]
 	
+	slim/open/expose 'glass-core-utils none [  search-parent-frames  ]
+
+	
 	glob-lib: slim/open 'glob none
 
 	;-   
@@ -1986,14 +1989,58 @@ slim/register [
 					vin "event.r/core-glass-handler()"
 					vout?: true
 ;					PRINT "CORE GLASS HANDLER()"
-;					print event/action
+;					vprint ">>>>>>>>>>>>>>>>"
+;					vprint event/action
 				]
 				;vprint ["event-window: " type? event/view-window]
 				;vprint ["window title: " event/view-window/text]
 				;vprint event/coordinates
+
+
+				;--------------------------------------
+				; These special events need no window or viewport
+				;
+				; it is possible, that the actions will resolve these on their own.
+				;
+				; note that these events may not directly control the return state.
+				;
+				; if they must control the return state, then they should also be implemented
+				; in the normal handler, having been assigned a view window first.
+				;--------------------------------------
+				switch event/action [
+					;----
+					;-        -UNFOCUS ALL ( 'unfocus with no marble setup )
+					UNFOCUS [
+;						vprint "FOUND UNFOCUS EVENT"
+						unless event/marble [
+;							vprobe "NO MARBLE --- UNFOCUS ALL"
+							
+							;----
+							; unfocus everything
+							foreach item focused-marbles [
+								; if we can't find the window, we still leave it in the list,
+								; perhaps some other system is aware of the focused item.
+								if window: search-parent-frames item 'window [
+									window: last window
+									queue-event clone-event/with event [
+										action: 'unfocus  
+										marble: item  
+										view-window: window/view-face
+									]
+								]
+							]
+							none
+						]
+					]
+				]
+
+				unless event/view-window [
+					if vout? [
+						vout
+					]
+					return event
+				]
 				
-				unless event/view-window [return event]
-	
 				; check if the event's face is managed by a !window viewport, 
 				rval: either viewport: get in event/view-window 'viewport [
 					;vprint "This is a GLASS driven-window!"
@@ -2273,17 +2320,11 @@ slim/register [
 						;----
 						;-        -UNFOCUS
 						UNFOCUS [
-							either event/marble [
+							if event/marble [
 								if marble: find focused-marbles event/marble [
 									remove marble
 								]
 								event
-							][
-								; unfocus everything
-								foreach item focused-marbles [
-									queue-event clone-event/with event [action: 'unfocus marble: item]
-								]
-								none
 							]
 						]
 						

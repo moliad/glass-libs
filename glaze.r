@@ -124,6 +124,10 @@ slim/register [
 	slim/open/expose 'style-cv none [!cv]
 	
 	
+	slim/open/expose 'group-labeled-frame none [!group-labeled-frame]
+	
+	
+	
 	; build the default glass stylesheet
 	
 	;- FRAMES
@@ -139,6 +143,8 @@ slim/register [
 	sl/collect-style pane/!pane
 	
 	sl/collect-style !board
+	
+
 	
 	;-      vcavity
 	sl/collect-style/as vcavity: make column [
@@ -208,7 +214,6 @@ slim/register [
 						 position dimension color border-color ;clip-region parent-clip-region
 						[
 							(sl/prim-cavity/all/colors data/position= data/dimension= - 1x1 data/color= data/border-color=)
-			
 						]
 						
 						; controls layer
@@ -619,7 +624,7 @@ slim/register [
 	
 	sl/collect-style/as make button/!button [aspects: make aspects [font: make font [bold?: false]]] 'thin-button
 	sl/collect-style/as make button/!button [aspects: make aspects [font: make font [size: 11 bold?: false]]] 'small-button
-	sl/collect-style/as make button/!button [aspects: make aspects [font: make font [size: 9 bold?: false]]] 'tiny-button
+	sl/collect-style/as make button/!button [aspects: make aspects [font: make font [size: 10 bold?: false]]] 'tiny-button
 	
 	
 	;-     link-button
@@ -774,6 +779,8 @@ slim/register [
 	;sl/collect-style group-field/!group-field
 	sl/collect-style group-sl/!scrolled-list
 	sl/collect-style !scroll-edtr
+	sl/collect-style !group-labeled-frame
+	
 	
 	
 	;- WINDOWS 

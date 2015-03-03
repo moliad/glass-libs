@@ -396,7 +396,7 @@ slim/register [
 						fill* group/material/fill-weight 0x1
 						link*/reset group/material/min-dimension group/material/user-min-dimension
 					]
-					xy [
+					y [
 						fill* group/material/fill-weight 1x0
 						link*/reset group/material/min-dimension group/material/user-min-dimension
 					]

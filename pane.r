@@ -165,8 +165,17 @@ slim/register [
 
 
 		;-    collect-in-frame:
-		; pane uses the optional collection management, where marbles are collected in another
-		; frame than ourself, and we let the style manage how that frame links into ours.
+		;
+		; !pane uses the optional collection management, where marbles are collected in another
+		; frame. 
+		;
+		; the other frame does all the layout, and we simply use its results and render them.
+		; 
+		; it is set to none at the mome, but it will later be filled with the frame in which 
+		; we collect the layout.
+		; 
+		; any call to collect(), using the normal api, will put the marbles in this subframe rather than
+		; directly within ourself.
 		collect-in-frame: none
 		
 

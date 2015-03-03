@@ -342,7 +342,7 @@ slim/register [
 							fill-pen black
 							line-width 0.5
 							(
-								prim-list p + 2x2 d - 5x5 theme-list-font content* gel/glob/marble/aspects/leading list data/list-index= data/chosen= none black
+								prim-list/arrows p + 2x2 d - 5x5 theme-list-font content* gel/glob/marble/aspects/leading list data/list-index= data/chosen= none black
 							)
 							
 							; for debugging
@@ -486,6 +486,44 @@ slim/register [
 						]
 					]
 				]
+				
+				vout
+			]
+			
+			
+			;--------------------------
+			;-        delete-chosen()
+			;--------------------------
+			; purpose:  if the list has any chosen items, it deletes them from the list.
+			;
+			; inputs:   
+			;
+			; returns:  
+			;
+			; notes:    the chosen list is cleared after
+			;
+			; to do:    
+			;
+			; tests:    
+			;--------------------------
+			delete-chosen: funcl [
+				list [object!]
+			][
+				vin "delete-chosen()"
+				cplug: get-aspect/plug list 'chosen 
+				lplug: get-aspect/plug list 'list
+				c: content* cplug
+				l: content* lplug
+				
+				remove-each [label tmp data] next l [
+					all [
+						blk: find c label
+						same? label pick blk 1
+					]
+				]
+				
+				list/valve/choose-item list none
+				lplug/valve/notify lplug
 				
 				vout
 			]

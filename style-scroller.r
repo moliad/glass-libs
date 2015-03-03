@@ -90,6 +90,7 @@ slim/register [
 		prim-x
 		prim-label
 		prim-knob
+		prim-drop-shadow
 		prim-recess
 		prim-cavity
 		top-half
@@ -266,6 +267,13 @@ slim/register [
 			
 			
 			
+			;---
+			; gel interim value binding
+			kstart: kend: none  ; knob start / knob end
+			kmargin:  none      ; knob margins
+			kdim: none
+			
+			
 			
 			;-        glob-class:
 			; defines the glob which will be built by each marble instance.
@@ -311,47 +319,84 @@ slim/register [
 						; fg layer
 						position dimension color hover? focused? selected? knob-position knob-dimension orientation
 						[
-							
+							(
+								kmargin: 3x3
+								kstart: data/knob-position=  + kmargin
+								kdim:   data/knob-dimension= - kmargin - kmargin
+								kend:   kstart + kdim
+							 	[]
+							)
 							; BG
-							(
-								prim-recess 
-									data/position= 
-									data/dimension= - 1x1
-									theme-recess-color
-									theme-border-color
-									data/orientation=
-							)
-							(
-								prim-cavity/colors
-									data/position= 
-									data/dimension= - 1x1
-									none
-									theme-border-color
-							)
+;							(
+;								prim-recess 
+;									data/position= 
+;									data/dimension= - 1x1
+;									theme-recess-color
+;									theme-border-color
+;									data/orientation=
+;							)
+
+							fill-pen (theme-recess-color)
+							pen none
+							box (data/position=) (data/position= + data/dimension= - 1x1)  2
+
+;							(
+;								prim-cavity/colors
+;									data/position= 
+;									data/dimension= - 1x1
+;									none
+;									theme-border-color
+;							)
 							
 							
 							; KNOB
-							(
-								prim-knob/grit 
-									data/knob-position= + 1x1 
-									data/knob-dimension= - 3x3
-									none
-									none ;theme-knob-border-color * 0.5
-									data/orientation=
-									max 0 (data/dimension=/y - data/knob-dimension=/y - data/knob-position=/y) + 10
-									3
-							)
+;							(
+;								prim-knob/grit 
+;									data/knob-position= ;+ 1x1 
+;									data/knob-dimension= - 1x1 ;3x3
+;									none
+;									theme-knob-border-color 
+;									data/orientation=
+;									max 0 (data/dimension=/y - data/knob-dimension=/y - data/knob-position=/y) + 10
+;									3
+;							)
 							
 							(
 								either data/hover?= [
 									compose [
+;										line-width 1
+;										fill-pen (theme-glass-color + 0.0.0.150)
+;										;pen theme-knob-border-color
+;										pen none
+;										box (kstart) (kend) 3
+;										(prim-drop-shadow (data/position=) (data/position= + data/dimension= - 1x1) 3)
+
+
 										line-width 1
-										fill-pen (theme-glass-color + 0.0.0.220)
-										pen theme-knob-border-color
 										pen none
-										box (data/knob-position= + 3x3) (data/knob-position= + data/knob-dimension= - 3x3) 2
+										fill-pen white
+										box (kstart) (kend - 1x1 ) 3
+										fill-pen (theme-glass-color + 0.0.0.175)
+										pen (theme-glass-color + 0.0.0.175)
+										box (kstart) (kend - 1x1 ) 3
+										(prim-drop-shadow kstart kdim - 1x1 3 )
+
+
+
+
+
 									]
-								][[]]
+								][
+									compose [
+										line-width 1
+;										fill-pen (white  + 0.0.0.50)
+										fill-pen theme-knob-color
+										pen theme-knob-color
+										;pen theme-knob-border-color
+										;pen none
+										box (data/knob-position= + kmargin ) (kend - 1x1) 3
+									]
+								]
 							)
 							
 						]

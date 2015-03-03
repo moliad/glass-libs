@@ -191,6 +191,7 @@ slim/register [
 			clr2: none
 			clr3: none
 			
+			corner: none
 			d: none ; dimension
 			p: none ; position
 			e: none ; box end (dimension + position)
@@ -240,6 +241,7 @@ slim/register [
 						position dimension color label hover? focused? cursor-index cursor-highlight label-index
 						[
 							(
+								corner: 1
 								d: data/dimension=
 								p: data/position=
 								e: d + p - 1x1
@@ -258,20 +260,21 @@ slim/register [
 							pen none
 							
 							; bg
-							fill-pen linear (p) 1 (d/y) 90 1 1 
-								(white * .98) 
-								(white * .98) 
-								(white) 
+;							fill-pen linear (p) 1 (d/y) 90 1 1 
+;								(white * .98) 
+;								(white * .98) 
+;								(white) 
+							fill-pen white
 							box (p) (e) 3
 							
 							
 							; top shadow
-							fill-pen linear (p) 1 (5) 90 1 1 
+							fill-pen linear (p) 1 (4) 90 1 1 
 								(0.0.0.180) 
 								(0.0.0.220) 
 								(0.0.0.245) 
 								(0.0.0.255 )
-							box (p) (e) 3
+							box (p) (e) (corner)
 
 							
 							pen none
@@ -279,7 +282,7 @@ slim/register [
 								either all [data/cursor-highlight= data/focused?=] [
 									compose [
 										fill-pen 255.255.255.200
-										box (hbox-s) (hbox-e) 3
+										box (hbox-s) (hbox-e) (corner)
 									]
 								][[]]
 							)
@@ -295,11 +298,9 @@ slim/register [
 							)
 							
 							(	
-								either f?  [ 
+								either f?  [
 									compose [
-										
-										
-											; highlight box
+										; highlight box
 										(
 											compose either data/cursor-highlight= [
 												prim-glass hbox-s hbox-e theme-color 190
@@ -345,19 +346,19 @@ slim/register [
 									[
 										line-width 2
 										fill-pen none
-										pen (theme-color + 0.0.0.175)
-										box (data/position= + 1x1) (data/position= + data/dimension= - 2x2) 3
-										pen white
+										pen (theme-color + 0.0.0.150)
+										box (data/position= + 1x1) (data/position= + data/dimension= - 2x2) (corner)
+										pen theme-knob-border-color
 										fill-pen none
 										line-width 1
-										box (data/position=) (data/position= + data/dimension= - 1x1) 3
+										box (data/position=) (data/position= + data/dimension= - 1x1) (corner)
 									]
 								][[
 									; simple gray border
-									pen theme-border-color
+									pen theme-knob-border-color
 									fill-pen none
 									line-width 1
-									box (data/position=) (data/position= + data/dimension= - 1x1) 3
+									box (data/position=) (data/position= + data/dimension= - 1x1) (corner)
 								]]
 							)
 							
@@ -760,7 +761,7 @@ slim/register [
 				event [object!]
 				/local aspects i t l k m h
 					   fill?
-			][ 
+			][
 				vin [{handle-typing()}]
 					
 				aspects: event/marble/aspects

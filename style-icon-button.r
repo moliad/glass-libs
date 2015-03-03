@@ -357,6 +357,7 @@ FEFFFFFF
 ;		vprint ["hover-icon: " type? hover-icon ]
 ;		vprint ["selected-icon: " type? selected-icon ]
 		
+		
 		plug/liquid: any [
 			all [ engaged?  engaged-icon  ]
 			all [ selected? selected-icon ]
@@ -411,7 +412,7 @@ FEFFFFFF
 			padding: 3x3
 			label: none
 			size: -1x-1  ; -1 in any coordinate makes it auto-sizing (on attach/detach)
-			font: make font [bold?: false size: 10]
+			font: theme-menu-item-font
 		]
 
 		
@@ -541,6 +542,7 @@ FEFFFFFF
 						;focused? !bool
 						hover? !bool
 						!bool
+						hidden? !bool
 						selected? !bool
 						engaged? !bool
 						align !word
@@ -559,12 +561,20 @@ FEFFFFFF
 					
 					
 						; event backplane
-						position dimension 
+						position dimension hidden?
 						[
-							line-width 1 
-							pen none 
-							fill-pen (to-color gel/glob/marble/sid) 
-							box (data/position=) (data/position= + data/dimension= - 1x1)
+							(
+								either data/hidden?= [
+									[]
+								][
+									compose [
+										line-width 1 
+										pen none 
+										fill-pen (to-color gel/glob/marble/sid) 
+										box (data/position=) (data/position= + data/dimension= - 1x1)
+									]
+								]
+							)
 						]
 						
 						; bg layer (ex: shadows, textures)
@@ -572,72 +582,79 @@ FEFFFFFF
 						;[]
 						
 						; fg layer
-						position dimension color label-color label align hover?  selected? padding font image label-size icon-spacing
+						position dimension color label-color label align hover? hidden? selected? padding font image label-size icon-spacing 
 						[
-							
-							; BG
 							(
-								either (data/selected?= and data/hover?=) [
+								either data/hidden?= [
+									[]
+								][
 									compose [
-										; edge color
-										pen black
-										fill-pen none 
-										line-width 1
-										box (data/position=) (data/position= + data/dimension= - 1x1) 3
 										
-										;inner shadow
-										pen (shadow + 0.0.0.25)
+										; BG
+										(
+											either (data/selected?= and data/hover?=) [
+												compose [
+													; edge color
+													pen black
+													fill-pen none 
+													line-width 1
+													box (data/position=) (data/position= + data/dimension= - 1x1) 3
+													
+													;inner shadow
+													pen (shadow + 0.0.0.25)
+													line-width 2
+													fill-pen none
+													box (data/position= + 1x1) (data/position= + data/dimension= - 2x2) 2
+			
+													pen none
+													(sl/prim-glass/corners/only (data/position= + 1x2) (data/position= + data/dimension= - 1x1) (theme-color + 0.0.0.50) 190 2)
+												]
+											][[]]
+			
+										)
+										(
+											either ((not data/selected?=) and data/hover?=) [
+												compose [
+													fill-pen (white + 0.0.0.180)
+													pen ( theme-knob-border-color  + 0.0.0.75 )
+													line-width 1
+													box (data/position=) ( data/position= + data/dimension= - 1x1 ) 3
+												]
+											][[]]
+										)
+										(
+											either image? data/image= [
+												
+												
+												 tmp: (data/position= + (data/dimension= / 2 * 1x0) - (data/image=/size / 2 * 1x0)  ) + 
+													  ((data/dimension= - data/label-size= - data/icon-spacing= - data/image=/size) / 2 * 0x1)
+													
+												compose [
+													pen none
+													fill-pen none
+													
+													IMAGE-FILTER NEAREST
+													image (data/image=) (tmp)
+													; uncomment to put a red box around the image. allows to debug sizing algorythm.
+													;pen red
+													;line-width 1
+													;fill-pen none
+													;box (tmp: (data/position= + (data/dimension= / 2 * 1x0) - (data/image=/size / 2 * 1x0) + (data/padding= * 0x1) )) (tmp + data/image=/size - 1x1 )
+												]
+											][[]]
+										)
+										
 										line-width 2
-										fill-pen none
-										box (data/position= + 1x1) (data/position= + data/dimension= - 2x2) 2
-
 										pen none
-										(sl/prim-glass/corners/only (data/position= + 1x2) (data/position= + data/dimension= - 1x1) (theme-color + 0.0.0.50) 190 2)
-									]
-								][[]]
-
-							)
-							(
-								either ((not data/selected?=) and data/hover?=) [
-									compose [
-										fill-pen (white + 0.0.0.180)
-										pen ( theme-knob-border-color  + 0.0.0.75 )
-										line-width 1
-										box (data/position=) ( data/position= + data/dimension= - 1x1 ) 3
-									]
-								][[]]
-							)
-							(
-								either image? data/image= [
-									
-									
-									 tmp: (data/position= + (data/dimension= / 2 * 1x0) - (data/image=/size / 2 * 1x0)  ) + 
-										  ((data/dimension= - data/label-size= - data/icon-spacing= - data/image=/size) / 2 * 0x1)
+										fill-pen (data/label-color=)
 										
-									compose [
-										pen none
-										fill-pen none
+										; label
+										(prim-label/pad data/label= data/position= + 1x0 data/dimension= data/label-color= data/font= 'bottom data/padding=)
 										
-										IMAGE-FILTER NEAREST
-										image (data/image=) (tmp)
-										; uncomment to put a red box around the image. allows to debug sizing algorythm.
-										;pen red
-										;line-width 1
-										;fill-pen none
-										;box (tmp: (data/position= + (data/dimension= / 2 * 1x0) - (data/image=/size / 2 * 1x0) + (data/padding= * 0x1) )) (tmp + data/image=/size - 1x1 )
+										
 									]
-								][[]]
+								]
 							)
-							
-							line-width 2
-							pen none
-							fill-pen (data/label-color=)
-							
-							; label
-							(prim-label/pad data/label= data/position= + 1x0 data/dimension= data/label-color= data/font= 'bottom data/padding=)
-							
-							
-							
 						]
 							
 						; controls layer
@@ -921,6 +938,9 @@ FEFFFFFF
 				
 				mat/auto-size: liquify* epoxy/!pair-add
 				
+				
+				
+				
 				vout
 			]
 			
@@ -962,6 +982,7 @@ FEFFFFFF
 			fasten: funcl [
 				icon
 			][
+				
 				vin [{glass/!} uppercase to-string icon/valve/style-name {[} icon/sid {]/fasten()}]
 				; this causes massive slow down, since each icon state
 				; causes a complete redraw of the backplate.
@@ -1040,11 +1061,13 @@ FEFFFFFF
 							fill* marble/aspects/engaged? true
 							;update-icon marble
 						)
+						
 						| set data image! (
 							switch img-count [
 								; sets the main image
 								1 [
 									fill* marble/aspects/icon data
+									;fill* marble/material/image data
 									img-count: img-count + 1
 								]
 								
@@ -1059,6 +1082,28 @@ FEFFFFFF
 								]
 							]
 						)
+
+;----------------------------------------------------------------------------------------------------
+;                       ; WILL NOT WORK BECAUSE OF THE WAY THE MARBLE IS CURRENTLY MATERIALSED AND FASTENDED
+;----------------------------------------------------------------------------------------------------
+;						| 'img-size set data pair! (
+;							print "========================="
+;							print "MANUAL icon IMG size"
+;							print "========================="
+;							; detect if we want proportional sizing...
+;							if any [
+;								-1 = data/x
+;								-1 = data/y
+;							][
+;								print "MANUAL PROP"
+;								either data/x = -1 [
+;									
+;								][
+;							
+;								]
+;							]
+;						)
+;----------------------------------------------------------------------------------------------------
 						
 						| skip
 					]

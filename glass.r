@@ -95,6 +95,8 @@ slim/register [
 		screen-size
 	]
 	
+	slim/open/expose 'glass-core-utils none [  search-parent-frames   ]
+	
 	epoxy-lib: slim/open/expose 'epoxy none [!box-intersection !pin]
 	event-lib: slim/open 'event none
 	glaze-lib: slim/open 'glaze none
@@ -232,7 +234,6 @@ slim/register [
 				button 75x23 stiff "Ok" [rval: content* fld/aspects/label hide-request none resume]
 				button 75x23 stiff "Cancel" [hide-request none resume ]
 			]
-			do [print "444444444444444444444444444444444444444"]
 		]
 		vout
 		rval
@@ -670,19 +671,48 @@ slim/register [
 	
 	;-----------------
 	;-    unfocus()
+	;
+	;
+	; inputs:   when supplying a word! we can use 'ALL in which case everything is unfocused.
+	;
+	;           when supplying an object! it should be a marble which will be sent the unfocus event.
+	;
+	;           when none! is given, nothing is unfocused.
 	;-----------------
 	unfocus: func [
-		marble
+		marble [word! object! none!] "what do we unfocus"
 	][
 		vin [{unfocus()}]
-		if window: search-parent-frames marble 'window [
-			window: last window
-			event-lib/queue-event compose [
-				action: 'unfocus 
-				marble: (marble)
-				view-window: window/view-face
+		switch type?/word :marble [
+			WORD! [
+				;---
+				; there could be many other keywords, but they have to be implemented.
+				switch/default marble [
+					ALL [
+						event-lib/queue-event compose [
+							action: 'unfocus 
+							marble: none
+							view-window: none ;window/view-face
+						]
+						
+					]
+				][
+					vprint "UNKNOWN UNFOCUS KEYWORD"
+				]
+			]
+			
+			OBJECT! [
+				if window: search-parent-frames marble 'window [
+					window: last window
+					event-lib/queue-event compose [
+						action: 'unfocus 
+						marble: (marble)
+						view-window: window/view-face
+					]
+				]
 			]
 		]
+		
 		vout
 	]
 	
@@ -697,47 +727,6 @@ slim/register [
 	;-----------------------------------------------------------------------------------------------------------
 
 
-	
-	;-----------------
-	;-     search-parent-frames()
-	;
-	; <TO DO> support block! input
-	;
-	; returns first parent with valve/style-name set in criteria
-	;-----------------
-	search-parent-frames: func [
-		marble [object!]
-		criteria [string! integer! issue! word! tuple!]
-		/id "searches usr-id in frames"
-		/local frm rdata
-	][
-		vin [{glass/search-paren-frames()}]
-		if frm: marble/frame [
-			case [
-				id [
-					until [
-						if frm/user-id = criteria [
-							append any [rdata rdata: copy []] frm
-						]
-						none? frm: frm/frame
-					]
-				]
-				
-				true [
-					criteria: to-word to-string criteria
-					until [
-						if frm/valve/style-name = criteria [
-							append any [rdata rdata: copy []] frm
-						]
-						none? frm: frm/frame
-					]
-				]
-			]
-		]
-		vout
-		rdata
-	]
-	
 	
 			
 

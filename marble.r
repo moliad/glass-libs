@@ -631,6 +631,8 @@ slim/register [
 							line-width 0
 							pen (none)
 							(
+								;probe data/label=
+								;probe data/padding=
 								prim-label/pad data/label= data/position= + 1x0 data/dimension= data/label-color= data/font= data/align= data/padding=
 							)
 							
@@ -782,7 +784,7 @@ slim/register [
 			
 			
 			;--------------------------
-			;-          get-default-aspect()
+			;-      get-default-aspect()
 			;--------------------------
 			; purpose:  all marbles have one aspect which is considered the default one, usually used for their main data value.
 			;
@@ -1282,7 +1284,22 @@ slim/register [
 							;marble/
 						)
 						
+						| 'bold (
+							fill* marble/aspects/font make content* marble/aspects/font [bold?: true]
+						)
 						
+						| 'font set data block! (
+							fill* marble/aspects/font make content* marble/aspects/font data
+						)
+
+						| 'font set data integer! (
+							spec: compose [ size: (data)]
+							fill* marble/aspects/font make content* marble/aspects/font spec
+						)
+						
+						| 'corner set data integer! (
+							fill* marble/aspects/corner data
+						)
 						
 						;-----
 						; attach a plug to ourself (keeping our value, if any).
@@ -1388,7 +1405,8 @@ slim/register [
 						) 
 						
 						| set data [integer!] (
-							fill* marble/aspects/corner data
+							val: content* marble/material/min-dimension
+							fill* marble/material/min-dimension (val * 0x1) + (data * 1x0)
 						) 
 						
 						| skip 
