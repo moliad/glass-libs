@@ -125,45 +125,49 @@ slim/register [
 		default-data-aspect: 'value
 		
 		
-	
-	
 		;-    Aspects[ ]
 		aspects: context [
 			offset: -1x-1
-			
 			
 			;-        focused?:
 			; some scrollers can be highlighted
 			focused?: false
 			
-			
 			;-        pressed?:
 			selected?: false
 			
+			;-        visible?:
+			visible?: true
 			
 			;-        hover?:
 			hover?: none
 			
-			
 			;-        color:
 			color: white * .8
+			
+			;-        bg-color:
+			bg-color: theme-recess-color
 
+			;-        hi-color:
+			hi-color:  ( theme-flat-color )
+
+			;-        fg-corner:
+			fg-corner: 2
+
+			;-        bg-corner:
+			bg-corner: 0
 
 			;-        minimum:
 			minimum: 1
 			
-			
 			;-        maximum:
 			maximum: 100
-			
 			
 			;-        visible:
 			visible: 5
 
-
 			;-        size:
 			size: 20x20
-			
 
 			;-        value:
 			; the current value of the scroller within the range
@@ -173,12 +177,8 @@ slim/register [
 			; the material has a plug called index, its piped with the value.
 			; the value has a purify method which rounds the index to its own range type.
 			value: 3
-			
-			
 		]
 
-
-	
 
 
 
@@ -189,7 +189,6 @@ slim/register [
 			;-        knob-position:
 			; offset of knob in pixels
 			knob-position: 0x0
-			
 			
 			;-        knob-offset:
 			; the pixel offset of the knob.  this is bridged with the 
@@ -204,7 +203,6 @@ slim/register [
 			; fasten will attach aspects/value to the pipe server, and link the min/max/dimension to appropriate plugs.
 			knob-offset: none
 			
-			
 			;-        scroll-space:
 			; 
 			; the available space which the scroller knob has for movement
@@ -212,40 +210,29 @@ slim/register [
 			; basically:  (dimension - knob-dimension)
 			scroll-space: 0x0
 			
-			
-			
 			;-        scroll-range:
 			; this is the maximum amount to return in scroll value.
 			;
 			; basically maximum - visible
 			scroll-range: 1
 			
-			
-			
 			;-        knob-scale:
 			; size of the knob along its orientation  
 			knob-scale: 100x100
-			
 			
 			;-        knob-dimension:
 			; final calculated size of the knob in pixels 
 			knob-dimension: 100x100
 			
-			
-			
 			;-        index:
 			; like the value, but internal
 			index: none
-			
-			
 			
 			;-        orientation:
 			; in what orientation will the scroller work.
 			; its in material, because the fasten call will set this depending on
 			; parent frame, if its set to 'auto when fasten looks at it.
 			orientation: 'auto
-			
-			
 			
 			;-        min-dimension
 			min-dimension: 20x20
@@ -258,7 +245,6 @@ slim/register [
 		
 		;-    valve[ ]
 		valve: make valve [
-		
 			type: '!marble
 		
 			;-        style-name:
@@ -266,13 +252,11 @@ slim/register [
 			style-name: 'scroller  
 			
 			
-			
 			;---
 			; gel interim value binding
 			kstart: kend: none  ; knob start / knob end
 			kmargin:  none      ; knob margins
 			kdim: none
-			
 			
 			
 			;-        glob-class:
@@ -285,14 +269,19 @@ slim/register [
 					;-            glob/input-spec:
 					input-spec: [
 						; list of inputs to generate automatically on setup these will be stored within glob/input
-						position !pair (random 200x200)
+						position !pair ( 200x200)
 						dimension !pair (100x30)
-						color !color  (random white)
+						color !color
+						bg-color !color
+						hi-color  !color
+						fg-corner !integer
+						bg-corner !integer
 						;label-color !color  (random white)
 						;label !string ("")
 						focused? !bool
 						hover? !bool
 						selected? !bool
+						visible? !bool
 						knob-position !pair
 						knob-dimension !pair ( 100x100)
 						knob-position !pair (0x0)
@@ -304,12 +293,20 @@ slim/register [
 					; these are bound and composed relative to the input being sent to glob at process-time.
 					gel-spec: [
 						; event backplane
-						position dimension 
+						position dimension visible?
 						[
-							line-width 1 
-							pen none 
-							fill-pen (to-color gel/glob/marble/sid) 
-							box (data/position=) (data/position= + data/dimension= - 1x1)
+							(
+								either not data/visible?= [
+									[]
+								][
+									compose [
+										line-width 1 
+										pen none 
+										fill-pen (to-color gel/glob/marble/sid) 
+										box (data/position=) (data/position= + data/dimension=)
+									]
+								]
+							)
 						]
 						
 						; bg layer (ex: shadows, textures)
@@ -317,96 +314,54 @@ slim/register [
 						;[]
 						
 						; fg layer
-						position dimension color hover? focused? selected? knob-position knob-dimension orientation
+						position dimension color bg-color hi-color fg-corner bg-corner
+						hover? focused? selected? knob-position knob-dimension orientation visible?
 						[
 							(
-								kmargin: 3x3
-								kstart: data/knob-position=  + kmargin
-								kdim:   data/knob-dimension= - kmargin - kmargin
-								kend:   kstart + kdim
-							 	[]
-							)
-							; BG
-;							(
-;								prim-recess 
-;									data/position= 
-;									data/dimension= - 1x1
-;									theme-recess-color
-;									theme-border-color
-;									data/orientation=
-;							)
+								either not data/visible?= [
+									[]
+								][
+									kmargin: 3x3
+									kstart:  data/knob-position=  + kmargin
+									kdim:    data/knob-dimension= - kmargin - kmargin
+									kend:    kstart + kdim
+								 	[]
 
-							fill-pen (theme-recess-color)
-							pen none
-							box (data/position=) (data/position= + data/dimension= - 1x1)  2
-
-;							(
-;								prim-cavity/colors
-;									data/position= 
-;									data/dimension= - 1x1
-;									none
-;									theme-border-color
-;							)
-							
-							
-							; KNOB
-;							(
-;								prim-knob/grit 
-;									data/knob-position= ;+ 1x1 
-;									data/knob-dimension= - 1x1 ;3x3
-;									none
-;									theme-knob-border-color 
-;									data/orientation=
-;									max 0 (data/dimension=/y - data/knob-dimension=/y - data/knob-position=/y) + 10
-;									3
-;							)
-							
-							(
-								either data/hover?= [
+									either data/hover?= [
+										; set colors:
+										knob-color: data/hi-color=
+									][
+										knob-color: data/color=
+									]
+									
 									compose [
-;										line-width 1
-;										fill-pen (theme-glass-color + 0.0.0.150)
-;										;pen theme-knob-border-color
-;										pen none
-;										box (kstart) (kend) 3
-;										(prim-drop-shadow (data/position=) (data/position= + data/dimension= - 1x1) 3)
-
+										; bg
+										fill-pen (data/bg-color=)
+										pen none
+										box (data/position=) (data/position= + data/dimension= )  (data/bg-corner=)
 
 										line-width 1
 										pen none
-										fill-pen white
-										box (kstart) (kend - 1x1 ) 3
-										fill-pen (theme-glass-color + 0.0.0.175)
-										pen (theme-glass-color + 0.0.0.175)
-										box (kstart) (kend - 1x1 ) 3
-										(prim-drop-shadow kstart kdim - 1x1 3 )
-
-
-
-
-
-									]
-								][
-									compose [
-										line-width 1
-;										fill-pen (white  + 0.0.0.50)
-										fill-pen theme-knob-color
-										pen theme-knob-color
-										;pen theme-knob-border-color
-										;pen none
-										box (data/knob-position= + kmargin ) (kend - 1x1) 3
+										fill-pen (knob-color)
+										pen (knob-color)
+										box (kstart) (kend - 1x1 ) (data/fg-corner=)
 									]
 								]
 							)
-							
+								
+							(	
+								either all [
+									data/hover?=
+									data/visible?=
+								][
+									;---
+									; add a shadow to knob
+									compose [ (prim-drop-shadow kstart kdim - 1x1 data/fg-corner= ) ]
+								][
+									[]
+								]
+							)
 						]
-							
-						; controls layer
-						;[]
-						
-						; overlay layer
-						; like the bg, it may switched off, so don't depend on it.
-						;[]
 					]
 				]
 			]
@@ -424,6 +379,8 @@ slim/register [
 				vin [{HANDLE SCROLLER}]
 				vprint event/action
 				scroller: event/marble
+				
+				;vprint event/offset
 				
 				switch/default event/action [
 					start-hover [
@@ -476,16 +433,12 @@ slim/register [
 							
 							select-pull [
 								vprint "PULL KNOB UP" 
-							
 							]
 							
 							select-push [
 								vprint "PULL KNOB DOWN"
 							]
 						]
-						
-						;do-event event
-						;ask ""
 					]
 					
 					; successfull click
@@ -522,10 +475,10 @@ slim/register [
 							
 							pull [
 								fill* scroller/aspects/value val + 1
-								
 							]
 						]
 					]
+					
 ;					drop? [
 ;						;fill* scroller/aspects/hover? false
 ;						;do-action event
@@ -701,7 +654,7 @@ slim/register [
 				scroller
 				/local value mtrl aspects vertical? data
 			][
-				vin [{fasten()}]
+				vin [{SCROLLER/fasten()}]
 								
 				mtrl: scroller/material
 				aspects: scroller/aspects
@@ -722,9 +675,7 @@ slim/register [
 						]
 					]
 				]
-				
 				vertical?: 'vertical = content* mtrl/orientation
-
 				
 				; if orientation was set to 'auto
 				fill* mtrl/fill-weight any [ scroller/stiff? either vertical? [0x1][1x0]]

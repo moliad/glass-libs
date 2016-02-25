@@ -128,9 +128,13 @@ slim/register [
 			border-color: theme-border-color
 			
 			
-			;-        disable?:
-			; this will dim the gui and add an input blocker OVER our collection.
-			disable?: false
+			;-        enabled?:
+			; when false or none, this will dim the gui and add an input blocker OVER our frame
+			; so child collection mouse handling is deactivated.
+			;
+			; this used to be named 'DISABLE? but it proved ineffective to us a negative value
+			; when linking with other controls and data.
+			enabled?: #[true]
 			
 			;-        corner:
 			corner: 3
@@ -459,9 +463,9 @@ slim/register [
 					;-            glob/input-spec:
 					input-spec: [
 						; list of inputs to generate automatically on setup  these will be stored within the instance under input
-						position !pair (random 200x200)
-						dimension !pair (300x300)
-						disable? !bool
+						position !pair  ( random 200x200 )
+						dimension !pair ( 300x300 )
+						enabled? !bool
 						;color !color
 						;border-color  !color (random white)
 						;clip-region !block ([0x0 1000x1000])
@@ -470,16 +474,18 @@ slim/register [
 					
 					;-            glob/gel-spec:
 					gel-spec: [
+						;---
 						; event backplane
-						disable? position dimension
+						enabled? position dimension
 						[
-							(either data/disable?= [
+							(
+								either not data/enabled?= [
 								compose [
 									pen none
 									fill-pen (white) ; erases backplane.
 									box  (data/position=) (data/position= + data/dimension= - 1x1)
 								]
-								][[]]
+								][ [] ]
 							)
 						]
 						
@@ -489,13 +495,13 @@ slim/register [
 						
 						; fg layer
 						; position dimension color border-color clip-region parent-clip-region
-						disable? position dimension
+						enabled? position dimension
 						[
 							; here we restore our parent's clip region  :-)
 							;clip (data/parent-clip-region=)
 							
 							(
-								either data/disable?= [
+								either not data/enabled?= [
 									compose [
 										pen none
 										fill-pen (theme-bg-color + 0.0.0.100)
@@ -689,8 +695,8 @@ slim/register [
 				/top "collects at the top rather tahn the end"
 				/local frm
 			][
-				vin [{glass/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/gl-collect()}]
-				vprint ["collecting one marble of type: " to-string marble/valve/style-name ]
+				;vin [{glass/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/gl-collect()}]
+				;vprint ["collecting one marble of type: " to-string marble/valve/style-name ]
 				
 				
 				either frm: get in frame 'collect-in-frame [
@@ -749,7 +755,7 @@ slim/register [
 					; this is advanced stuff, use with caution.	
 					frame/valve/collect frame marble
 				]
-				vout
+				;vout
 			]
 			
 			
@@ -770,9 +776,9 @@ slim/register [
 				frame
 				marble
 			][
-				vin [{glass/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/collect()}]
+				;vin [{glass/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/collect()}]
 
-				vout
+				;vout
 			]
 			
 			
@@ -859,7 +865,6 @@ slim/register [
 							to-error "Trying to discard marble from wrong frame"
 						]
 	
-						vprint "!!!"
 					]
 				]
 				vout
@@ -932,8 +937,8 @@ slim/register [
 				
 				;-            -wrapper
 				if find frame/options 'wrapper [
-					vprint "SPECIFYING WRAPPER!"
-					vprint content* frame/aspects/offset
+					;vprint "SPECIFYING WRAPPER!"
+					;vprint content* frame/aspects/offset
 					link*/reset mtrl/position frame/aspects/offset
 				]
 
@@ -964,7 +969,7 @@ slim/register [
 				
 				switch frame/layout-method [
 					column [
-						vprint "COLUMN!"
+						;vprint "COLUMN!"
 						; position
 						mtrl/content-min-dimension/valve: epoxy-lib/!vertical-accumulate/valve
 						mtrl/content-fill-weight/valve: epoxy-lib/!vertical-accumulate/valve
@@ -973,7 +978,7 @@ slim/register [
 					
 					; 
 					row [
-						vprint "ROW!"
+						;vprint "ROW!"
 						; position
 						mtrl/content-min-dimension/valve: epoxy-lib/!horizontal-accumulate/valve
 						mtrl/content-fill-weight/valve: epoxy-lib/!horizontal-accumulate/valve
@@ -1071,14 +1076,14 @@ slim/register [
 					
 					switch frame/layout-method [
 						column [
-							vprint "COLUMN!"
+							;vprint "COLUMN!"
 							; position
 							mmtrl/position/valve: epoxy-lib/!vertical-shift/valve
 							mmtrl/dimension/valve: epoxy-lib/!vertical-fill-dimension/valve
 						]
 						
 						row [
-							vprint "ROW!"
+							;vprint "ROW!"
 							; position
 							mmtrl/position/valve: epoxy-lib/!horizontal-shift/valve
 							mmtrl/dimension/valve: epoxy-lib/!horizontal-fill-dimension/valve
@@ -1093,7 +1098,7 @@ slim/register [
 				;------
 				; frame inner-fastening
 				if find frame/options 'wrapper [
-					vprint "this is a wrapper"
+					;vprint "this is a wrapper"
 					; wrappers are simple dimension containers
 					mtrl/dimension/valve: !plug/valve
 					
@@ -1119,12 +1124,11 @@ slim/register [
 			fasten: func [
 				frame
 			][
-				vin [{glass/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/fasten()}]
+				;vin [{glass/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/fasten()}]
 				
-				vout
+				;vout
 			]
 			
-
 			
 
 			;-----------------
@@ -1159,6 +1163,10 @@ slim/register [
 							fill* frame/aspects/fill-scale 0x1
 						)
 						
+						| 'blocking (
+							fill* frame/aspects/enabled? false
+						)
+						
 						| 'stiff-y (
 							fill* frame/aspects/fill-scale 1x0
 						)
@@ -1167,8 +1175,7 @@ slim/register [
 							fill* frame/aspects/fill-scale 0x0
 						)
 						
-						| 'adjust set data pair! (
-							print "ADJUST!"
+						| 'adjust  set data pair!  ( 
 							fill* frame/aspects/dimension-adjust data
 						)
 						
@@ -1193,8 +1200,8 @@ slim/register [
 						| set data tuple! (
 							switch tuple-count [
 								1 [
-									vprint "frame COLOR!" 
-									vprint data
+									;vprint "frame COLOR!" 
+									;vprint data
 									fill* frame/aspects/border-color data
 								]
 								
@@ -1207,7 +1214,7 @@ slim/register [
 						| set data pair! (
 							switch pair-count [
 								1 [  
-									vprint "frame Border-size!" 
+									;vprint "frame Border-size!" 
 									fill* frame/material/border-size data
 								]
 								
@@ -1219,10 +1226,10 @@ slim/register [
 						
 						)
 						| set data block! (
-							vprint "frame MARBLES!" 
+							;vprint "frame MARBLES!" 
 							pane: regroup-specification data
 							new-line/all pane true
-							vprint "skipping inner pane attributes"
+							;vprint "skipping inner pane attributes"
 							pane: find pane block!
 							
 							if pane [

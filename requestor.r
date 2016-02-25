@@ -121,6 +121,8 @@ slim/register [
 
 
 		;-    viewport:
+		; used by event engine, for modality control and auto hiding.
+		;
 		; we use this to track on which viewport this requestor is currently displayed.
 		; if none, we aren't currently visible.
 		;
@@ -135,9 +137,14 @@ slim/register [
 		; it is handled normally by frame.
 		;
 		; note that the dialect for the group itself, is completely redefined for each group.
-		content-specification: [
-			title-bar [
-				title-bar: requestor-title left "Request"
+		content-specification: compose/deep [
+			column tight [
+				column  (theme-frame-color) (theme-frame-color) corner 0 [
+					;title-bar tight [
+						title-bar: requestor-title left "Request" 
+					;]
+				]
+				shadow-hseparator
 			]
 			column []
 		]
@@ -196,7 +203,7 @@ slim/register [
 							line-width 0
 							fill-pen theme-requestor-bg-color
 							pen (theme-knob-border-color)
-							box (data/position=) (data/position= + data/dimension= - 1x1) 
+							box (data/position=) (data/position= + data/dimension= - 1x1)
 							
 							;(sillica-lib/prim-bevel data/position= data/dimension=  any [data/color= theme-bevel-color] 0.5 1)
 						]

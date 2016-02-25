@@ -108,7 +108,7 @@ slim/register [
 		do-event
 		clip-to-marble
 	]
-	epoxy-lib: slim/open/expose 'epoxy none [!box-intersection !piped-to-string]
+	epoxy-lib: slim/open/expose 'epoxy none [!box-intersection  !piped-to-string  !piped-to-datatype  !purified-type]
 	event-lib: slim/open 'event none
 
 	
@@ -148,11 +148,23 @@ slim/register [
 			;-        color:
 			color: black
 			
+			
+			;-        value:
+			;
+			; a special aspect which is a representation of the label in another datatype.
+			;
+			; CAUTION: This uses the circulation system in liquid.
+			;          It may be hard to properly setup in conjunction with pipes.
+			;          consider this an "expert" feature of glass for now.
+			;
+			;          by default it is simply a copy of the label, but only refreshed on enter/tab.
+			value: none
+			
 		]
 
 		;-    label-backup:
 		; when focus occurs, store our label here
-		; if escaped, we go back to it.
+		; if escaped or value is invalid, we go back to it.
 		label-backup: none
 		
 
@@ -765,7 +777,7 @@ slim/register [
 				vin [{handle-typing()}]
 					
 				aspects: event/marble/aspects
-				vprint ["typing into : " content* aspects/label]
+				;vprint ["typing into : " content* aspects/label]
 				vprobe event/key
 				
 				
@@ -777,21 +789,38 @@ slim/register [
 				h: content* aspects/cursor-highlight
 				
 				fill?: switch/default k [
+					;---
 					; generate an unfocus
 					escape [
 						; we restore the previous text we had before the focus occured
 						fill* aspects/label m/label-backup
+						; escape DOES NOT affect the value aspect, so pressing escape causes no
+						; liquid messaging to occur (as it should be)
 						event-lib/queue-event event-lib/clone-event/with event [action: 'unfocus ]
 						false
 					]
 					
 					enter [
+						;---
 						; in a field, the enter event, causes a 'set-text and an 'unfocus 
 						event-lib/queue-event event-lib/clone-event/with event [
 							action: 'set-text
 							;text: t  ; if you set this to a string, it will fill the label within handler.
 						]
+						;---
+						; we manually refresh the field's VALUE aspect
+						;
+						; it WILL then cause a fill on the label, IF the string changes.
+						;liquid-lib/von
+						;print "--->"
+						;print content event/marble/aspects/label
+						fill event/marble/aspects/label content event/marble/aspects/label
+						;liquid-lib/voff
+						;print ["FILLING VALUE : " content event/marble/aspects/value]
+						;print ["hold? " event/marble/aspects/value/holding?]
+						;print ["hold? " event/marble/aspects/label/holding?]
 						event-lib/queue-event event-lib/clone-event/with event [action: 'unfocus ]
+						
 						false
 					]
 					
@@ -826,7 +855,7 @@ slim/register [
 					]
 					
 					select-all [
-						set-highlight m 1 100000
+						set-highlight m 1 1000000
 						false
 					]
 					
@@ -896,8 +925,17 @@ slim/register [
 					]
 					true
 				]
+				
+				;-------------------
+				; by default, typing only causes a simple text label change, 
+				; it does not change the value of the plug, nor does it 
+				; activate the field's action handler
+				;
+				; if you want to hear all typing, simply register a handler 
+				; for the 'text-entry event.
+				;-------------------
 				if fill? [
-					fill* aspects/label t
+					aspects/label/valve/fill/hold aspects/label t
 				]
 
 
@@ -939,7 +977,7 @@ slim/register [
 				/local field i txt
 			][
 				vin [{HANDLE FIELD}]
-				vprint event/action
+				;vprint event/action
 				
 				field: event/marble
 				action-event: event
@@ -1033,8 +1071,10 @@ slim/register [
 					]
 					
 					
+					;-------
 					; this should be used to set the text and force its action to evaluate.
 					; note that this event doesn't cause any gfx change, beyond changing the text in the field.
+					;
 					set-text [
 						;vprint "%%%%"
 						if all [
@@ -1063,6 +1103,62 @@ slim/register [
 				none
 			]
 			
+			
+			;--------------------------
+			;-        conform-value()
+			;--------------------------
+			; purpose:  conforms a value to its type, sends an update to the label. 
+			;
+			; inputs:   
+			;
+			; notes:    allows to easily provite typed fields.
+			;           not all datatypes are supported.
+			;
+			; to do:    
+			;
+			; tests:    
+			;--------------------------
+			conform-value: funcl [
+				src-plug [object!]
+				dest-plug [object!]
+				mud 
+			][
+				vin "conform-value()"
+				;print "conform-value()"
+				
+				;probe words-of src-plug
+				;probe words-of dest-plug
+				
+				data: switch src-plug/val-type [
+					#[datatype! integer!][
+						probe "setting field to integer!"
+						value: mud
+						unless attempt [to-integer  mud][
+							probe "ERROR: resetting field label"
+							value: any [
+								all [
+									attempt [to-integer src-plug/field-marble/label-backup]
+									0
+								]
+							]
+						]
+						mold value
+					]
+					#[datatype! string!][
+						;probe "setting field to string!"
+						switch type?/word :mud [
+							string! binary! [
+								mud
+							]
+						]
+					]
+					
+				]
+				
+			
+				vout
+				data
+			]
 
 
 			;-----------------
@@ -1070,12 +1166,20 @@ slim/register [
 			;-----------------
 			; make sure the label is always a string, when piped.
 			;-----------------
-			setup-aspects: func [
+			setup-aspects: funcl [
 				marble
 			][
 				;---
 				; makes the field's label always a string, when piped.
-				marble/aspects/label: liquify*/fill !piped-to-string	marble/aspects/label
+				marble/aspects/label: liquify*/fill !purified-type	marble/aspects/label ; purified-type is set to string! by default.  no need to set it.
+				marble/aspects/value: p: liquify*/piped/fill !piped-to-datatype marble/aspects/value ; setup as a string value by default.  change it using dialect.
+				
+				attach marble/aspects/label marble/aspects/value
+				
+;				p/circulate: reduce [
+;					marble/aspects/label
+;					:conform-value
+;				]
 			]
 
 
@@ -1098,8 +1202,70 @@ slim/register [
 				
 				; just a quick stream handler for all marbles
 				event-lib/handle-stream/within 'field-handler :field-handler marble
+				
 				vout
 			]
+			
+			
+			
+			;--------------------------
+			;-        dialect()
+			;--------------------------
+			; purpose:  
+			;
+			; inputs:   
+			;
+			; returns:  
+			;
+			; notes:    
+			;
+			; to do:    
+			;
+			; tests:    
+			;--------------------------
+			dialect: funcl [
+				marble [object!]
+				spec   [block!]
+				stylesheet [block!] "Required so stylesheet propagates in marbles we create"
+			][
+				vin "dialect()"
+				parse spec [
+					any [
+						'integer! (
+							marble/aspects/value/pipe?/dtype: integer!
+							marble/aspects/value/pipe?/default-value: 0
+						)
+						
+						;---
+						; an explicit datatype is specified (not the WORD! value of that datatype)...
+						; this usually must be reduced in the block or provided in serialized format
+						; (ex:   #[datatype!  file!]  )
+						;
+						; this allows us to catch any type which may work in the !purified-type plug which
+						; drives the field's value aspect.
+						;---
+						| set dtyp datatype! (
+							marble/aspects/value/pipe?/dtype: dtyp
+							
+							;----
+							; we attempt to build a value from scratch for those types which support some of the
+							; basic empty values as contruction specs.
+							; the !purified-type plug should be able to recover from a none value if nothing works.
+							;--
+							marble/aspects/value/pipe?/default-value: any [
+								attempt [ make dtype  copy [] ]
+								attempt [ make dtype none ]
+								attempt [ make dtype "" ]
+								attempt [ make dtype 0 ]
+							]
+						)
+						| skip
+					]
+				]
+				vout
+				marble
+			]
+			
 		]
 	]
 ]

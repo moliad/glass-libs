@@ -192,7 +192,7 @@ slim/register [
 		; going to equate to ~ 30 since we only receive ~30 timer events per second from
 		; view to begin with.
 		; 
-		; the default is pretty high (10 frames/second) , its a good idea to
+		; the default is pretty high (20 frames/second) , its a good idea to
 		; lower it when:
 		;    viewing large windows 
 		;    frames contains many marbles
@@ -392,8 +392,8 @@ slim/register [
 
 				vprint ["window offset: " content* aspects/offset]
 				if center [
-					off: content aspects/offset
-					fill* aspects/offset ((screen/size - view-face/size / 2) + off)
+					;off: content* aspects/offset
+					fill* aspects/offset ((screen/size - view-face/size / 2) )
 				]
 				view-face/offset: content* aspects/offset
 				view-face/rate: 1 ; forces timer events in wake-event
@@ -922,7 +922,11 @@ slim/register [
 											]
 										][
 											if hovered-marble [
-												qevent: clone-event event
+												qevent: clone-event/with event compose [
+													to-marble: (marble)
+													to-offset: (either marble [coordinates-to-offset marble event/coordinates][0x0]) 
+												]
+												
 												qevent/action: 'END-HOVER
 												qevent/marble: hovered-marble
 												qevent/offset: coordinates-to-offset hovered-marble event/coordinates
@@ -1070,12 +1074,14 @@ slim/register [
 												vprint "CLIPPING"
 												vprobe clip-regions
 												
-												insert wglob reduce [ 'gamma 1.2 'clip ( clip-regions/1 ) ( clip-regions/2 ) ]
+;												insert wglob reduce ['gamma .5  'clip ( clip-regions/1 ) ( clip-regions/2 ) ]
+												insert wglob reduce [  'clip ( clip-regions/1 ) ( clip-regions/2 ) ]
 												clear clip-regions
 											][
-											
 												window/last-draw-clipped?: true
 											]
+											
+											insert wglob ['gamma 1.3]
 											
 											draw img wglob
 											if oglob [draw img oglob]
@@ -1191,8 +1197,10 @@ slim/register [
 										either marble <> selected-marble [
 											vprint "marble isn't the selected marble"
 											; give another marble the chance to refresh if the mouse is over it.
-											dispatch clone-event/with event [
-												action: 'END-HOVER 
+											dispatch clone-event/with event compose [
+												action: 'END-HOVER
+												to-marble: (marble)
+												to-offset: (either marble [coordinates-to-offset marble event/coordinates][0x0]) 
 											]
 											vprint "end hover done"
 											

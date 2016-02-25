@@ -143,18 +143,24 @@ slim/register [
 	; if overlay is a block, layout is called on it directly.
 	;-----------------
 	request: func [
-		title [string!]
+		title [string! none!] "when title is none, we don't use the requestor style."
 		viewport [object! none!] "be carefull giving a none! here, last opened window MUST BE A GLASS WINDOW"
 		req [object! block!]
 		/non-blocking "Do not trigger input blocker"
 		/modal
 		/size sz [pair!]
+		/position pos [pair! object!] "when given an object, it expects a pair! giving plug (can be a marble position material)"
 		/local trigger 
 	][
 		vin [{glass/request()}]
 		
 		if block? req [
-			req: layout/within/options req 'requestor reduce [title]
+			either title [
+				req: layout/within/options req 'requestor reduce [title]
+			][
+				req: layout/within/options req 'column [tight]
+				req: make req [viewport: none]
+			]
 		]
 		
 		fasten req
@@ -169,7 +175,11 @@ slim/register [
 			'remove
 		]
 		
-		pin req viewport 'center 'center
+		either position [
+			; user gave explicit position, put it there.
+		][
+			pin req viewport 'center 'center
+		]
 		
 		add-overlay req viewport trigger
 		
@@ -185,8 +195,120 @@ slim/register [
 		req
 	]
 	
-	
-	
+
+	;--------------------------
+	;-     request-popup()
+	;--------------------------
+	; purpose:  display a popup which disapears when clicked outside of itself.
+	;
+	; inputs:   
+	;
+	; returns:  
+	;
+	; notes:    does not provide any titlebar, only an edge... with no shadow.
+	;
+	;           also note that we use a copy of given req object, if supplied a pre built pane object
+	;
+	; to do:    
+	;
+	; tests:    
+	;--------------------------
+	request-popup: funcl [
+		marble [object!] "a marble for this popup to be relative to."
+		req [block! object!]
+		/within viewport "be carefull giving a none! here, last opened window MUST BE A GLASS WINDOW"
+		/at at-pos [word!] "a pin orientation (top, bottom, center, top-left, etc)"
+		/size sz [pair!]
+		/modal
+		/slide "slide down the popup like a blind"
+	][
+		vin "request-popup()"
+
+		slide-pane: none
+		slide-frame: none
+
+		if block? req [
+			either slide [
+				req: compose/deep [
+					slide-pane: pane [ slide-frame: ( req )]
+				]
+				req: layout/within/options req 'column compose [ tight  ]
+			][
+				req: layout/within/options req 'column compose [ tight  ]
+			]
+		]
+		
+		;---
+		; just add what the popup managing code needs to track if window has a popup and
+		;
+		; for event engine to trap it.
+		req: make req [
+			viewport: none
+		]
+		fasten req
+
+		viewport: any [viewport default-viewport]
+		req/viewport: viewport
+		
+		trigger: any [
+			;all [non-blocking 'ignore]
+			all [modal 'ignore]
+			'remove
+		]
+		
+		dest-pin: any [at-pos 'bottom-left]
+		requestor-pin: 'top-left
+		pin req marble requestor-pin dest-pin 
+		
+		either slide [
+			slide-time: .2
+		
+			unless size [
+				sz: content req/material/dimension
+			]
+			asize: 1x0 * sz 
+			
+			fill* req/material/dimension asize
+			add-overlay req viewport trigger
+			
+			s: now/precise
+			until [
+				t: now/precise
+				d: to-decimal difference t s
+				
+				time-fraction: (d / slide-time )
+				time-fraction: min time-fraction 1.0
+				
+				asize: 1x0 * sz 
+				asize: ( (time-fraction) * sz * 0x1) + (1x0 * sz)
+				
+				fill* slide-pane/material/dimension asize
+				fill* slide-frame/material/dimension asize
+				wait 0.01
+				time-fraction > 0.99999
+			]
+				
+			
+		][
+			if size [
+				fill* req/material/dimension sz
+			]
+			add-overlay req viewport trigger
+		]
+		
+		
+		if modal [
+			hold
+		]
+		
+		vout
+		req		
+	]
+
+
+
+
+
 	;-----------------
 	;-     hide-request()
 	;-----------------
@@ -222,10 +344,21 @@ slim/register [
 	;-----------------
 	request-string: func [
 		title [string!]
+		/message msg
 		/local fld rval
 	][
 		vin [{request-string()}]
-		request/modal title none [
+		request/modal title none compose/deep [
+			(
+				either msg [
+					compose [	
+						auto-label (msg)
+					]
+				][
+					[]
+				]
+			)
+
 			column 20x10 [
 				fld: field 200x23
 			]
@@ -244,13 +377,13 @@ slim/register [
 	;-----------------
 	;-     request-confirmation()
 	;-----------------
-	request-confirmation: func [
+	request-confirmation: funcl [
 		title [string!]
 		/message msg [string!]
 		/labels lbl-ok [string!] lbl-cancel [string!]
-		/local rval 
 	][
 		vin [{request-confirmation()}]
+		rval: none
 		lbl-ok: any [lbl-ok "Ok"]
 		lbl-cancel: any [lbl-cancel "Cancel"]
 		request/modal title none compose/deep [
@@ -275,7 +408,88 @@ slim/register [
 	]
 	
 	
+	;--------------------------
+	;-     request-action()
+	;--------------------------
+	; purpose:  build a requestor from scratch with a list of buttons, a title, and a message.
+	;
+	; inputs:   
+	;
+	; returns:  
+	;
+	; notes:    button values can be functions which are then called like hooks.  these functions may not have any arguments.
+	;
+	; to do:    
+	;
+	; tests:    
+	;--------------------------
+	request-action: funcl [
+		title [string!]   "Window title"
+		message [string!] "Main user message"
+		buttons [block!]  {Tag list of button string and button value to return ex: [ "save" 'save  "no save" 'no-save  "cancel" #[none] ] }
+		/button-width bw [integer!] "set buttons to this width"
+	][
+		vin "request-action()"
+		rval: none
+		spec: copy [
+			auto-label (message)
+			row 50x20 (btn-spec)
+		]
+		
+		btn-spec: copy [
+			hstretch
+		]
+		foreach [ label value ] buttons [
+		
+			switch type?/word :value [
+				word! lit-word! set-word! get-word! [
+					value: compose [ load (mold :value) ]
+				]
+				
+				block! [
+					; just wrap it in a block so compose keeps the original block.
+					value: append/only copy [  ] value
+				]
+				
+				function! native! [
+					; make sure the function has no arguments, otherwise, raise an error.
+					if find (spec-of :value) word! [
+						to-error "glass/request-action() button function hooks may not have arguments."
+					]
+				]
+				
+				routine! operator! [
+					to-error "glass/request-action() unsupported types for button values"
+				]
+			]
+			
+			;----
+			; we keep some values as a string in the button, this cancels the double word evaluation problem
+			; we may have with the value resulting from the compose
+			;
+			; when the requestor is evaluated, we then load back the value.
+			;----
+			if bw [
+				btn-size: (1x0 * bw) + 0x23
+			]
+			btn-size: any [btn-size 75x23]
+			
+			append btn-spec compose/deep [
+				button (btn-size) stiff (label) [ rval: ( :value ) hide-request none resume ]
+			]
+		]
+
+		append btn-spec 'hstretch
+		spec: compose/only spec
+		request/modal title none spec 
+		
+		vout
+		spec: btn-spec: label: value: title: message: buttons: none
+		
+		rval
+	]
 	
+		
 	;-----------------
 	;-     request-inform()
 	;-----------------
@@ -350,10 +564,12 @@ slim/register [
 	; do not call this within event handling as it will enter an endless loop.
 	;-----------------
 	refresh: func [
-		vp [object!]
+		vp [object! none!]
 	][
 		vin [{refresh()}]
+		vp: any [vp default-viewport]
 		event-lib/queue-event [action: 'REFRESH viewport: vp]
+		
 		
 		; this forces a refresh immediately and handles all other events too.
 		event-lib/do-queue 
@@ -588,7 +804,7 @@ slim/register [
 	;-----------------
 	discard: func [
 		frame [object!]
-		marble [object! block! word!]
+		marble [object! block! word!] "you may use 'all as the marble, in which case all marbles are discarded."
 		/only
 	][
 		vin [{collect-marble()}]

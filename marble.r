@@ -585,7 +585,6 @@ slim/register [
 						color !color 
 						label-color !color
 						border-color !color
-						min-dimension !pair
 						font !any
 						align !word
 						corner !integer
@@ -610,7 +609,7 @@ slim/register [
 						;[]
 						
 						; fg layer
-						position dimension color label label-color border-color min-dimension font align corner padding
+						position dimension color label label-color border-color  font align corner padding
 						[
 							line-width 1
 							(
@@ -632,7 +631,8 @@ slim/register [
 							pen (none)
 							(
 								;probe data/label=
-								;probe data/padding=
+								;probe data/color=
+								
 								prim-label/pad data/label= data/position= + 1x0 data/dimension= data/label-color= data/font= data/align= data/padding=
 							)
 							

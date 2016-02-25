@@ -136,6 +136,11 @@ slim/register [
 			;-        hidden?
 			hidden?: false
 			
+			;-        inert?:
+			;
+			; when true, the button becomes dead, and its text is shaded.
+			inert?: false
+			
 			;-        corner
 			corner: 3
 		]
@@ -183,6 +188,7 @@ slim/register [
 						padding !pair
 						font !any
 						hidden? !bool
+						inert? !bool
 						corner !integer
 					]
 					
@@ -198,7 +204,6 @@ slim/register [
 									[]
 								][
 									compose [
-										line-width 1 
 										pen none 
 										fill-pen (to-color gel/glob/marble/sid) 
 										box (data/position=) (data/position= + data/dimension= - 1x1)
@@ -212,7 +217,7 @@ slim/register [
 						;[]
 						
 						; fg layer
-						position dimension corner color border-color label-color label align hover? focused? selected? padding font hidden?
+						position dimension corner color border-color label-color label align hover? focused? selected? inert? padding font hidden?
 						[
 							(
 								either data/hidden?= [
@@ -221,10 +226,12 @@ slim/register [
 									;print [ data/label= ": " data/label-color= data/color=]
 									;draw bg and highlight border?
 									any [
+										
+									
 										all [ data/hover?= data/selected?= compose [
 												; bg color
 												pen none
-												line-width 0
+												;line-width 0
 												fill-pen linear (data/position=) 1 (data/dimension=/y) 90 1 1 ( data/color= * 0.6 + 128.128.128) ( data/color= ) (data/color= * 0.7 )
 												box (data/position= + 1x1) (data/position= + data/dimension= - 1x1) (data/corner= - 1)
 		
@@ -337,7 +344,7 @@ slim/register [
 							either data/hidden?= [
 								[]
 							][
-								prim-label/pad data/label= data/position= + 1x0 data/dimension= data/label-color= data/font= data/align=  data/padding=
+								prim-label/pad data/label= data/position= + 1x0 data/dimension= (either data/inert?= [ data/label-color= / 2 + gray ][data/label-color=]) data/font= data/align=  data/padding=
 							]
 							)
 							
@@ -372,23 +379,31 @@ slim/register [
 				vprint event/action
 				button: event/marble
 				
+				
+				if content* event/marble/aspects/inert? [
+					;-----
+					; when inert, we simply cancel all interaction.
+					vout
+					return none
+				]
+				
 				; set this to an event so that the event is re-queued
 				action-event: event
 				
-				switch/default event/action [
+				switch event/action [
 					start-hover [
-						clip-to-marble event/marble event/viewport
+						clip-to-marble button event/viewport
 						fill* button/aspects/hover? true
 					]
 					
 					end-hover [
-						clip-to-marble event/marble event/viewport
+						clip-to-marble button event/viewport
 						fill* button/aspects/hover? false
 					]
 					
 					select [
 						fill* button/aspects/selected? true
-						clip-to-marble event/marble event/viewport
+						clip-to-marble button event/viewport
 					]
 					
 					; successfull click
@@ -439,19 +454,16 @@ slim/register [
 						event
 					]
 					
-					text-entry [
-;						type event
-						event
-					]
+					;text-entry [
+					;	type event
+					;	event
+					;]
 					
 					action [
 						;print  ":!!!!!!!!!!!!!!!!!!!!"
 						;do-action event
 						event
 					]
-				][
-					;vprint "IGNORED"
-					action-event: event
 				]
 				
 				if action-event [

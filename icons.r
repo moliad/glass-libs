@@ -448,6 +448,36 @@ FEFFFFFF
 	]
 	
 	
+	;--------------------------
+	;-    load-single-icon-image()
+	;--------------------------
+	; purpose:  if you want to load a single icon from the icon lib in a specific size.
+	;
+	; inputs:   
+	;
+	; returns:  
+	;
+	; notes:    usefull for using some icons at large rez without loading ALL of them.
+	;
+	; to do:    
+	;
+	; tests:    
+	;--------------------------
+	load-single-icon-image: funcl [
+		name [word! issue! string!]
+		/style sname [word!] "use a different style than the default look for this set."
+		/size width [integer!] "specify a different size than the default"
+	][
+		vin "load-single-icon-image()"
+		load-icons/only/style/size/as (reduce [ name ]) sname  width (set-name: to-word rejoin ["set-" random 1000000 "-" random 1000000])
+		img: get-icon/image/set (safe-icon-name name) set-name
+		;?? name
+		;?? sname
+		;?? width
+		;probe img/size
+		vout
+		img
+	]
 	
 	
 	;-----------------
@@ -457,8 +487,8 @@ FEFFFFFF
 	;-----------------
 	load-icons: func [
 		/set set-name [word!] "the name of the icon set to load"
-		/style name [word!] "use a different style than the default look for this set."
-		/size width [integer!] "specify a different size than the default"
+		/style name [word! none!] "use a different style than the default look for this set."
+		/size width [integer! none!] "specify a different size than the default"
 		/only icons [word! block!] "only load the given icons, not the whole set"
 		/as new-set-name [word!] "changes the name when storing a loaded set into the icon collection, so you can two sets with different-scaling or style in ram"
 		
@@ -487,13 +517,13 @@ FEFFFFFF
 			set-name: any [new-set-name set-name]
 			
 			if encapped-icons? [
-				vprobe length? icon-lib
+				;vprobe length? icon-lib
 				;vprobe extract icon-lib 2
 				;vprobe icon-lib
-				vprobe type? icon-lib/1
-				vprobe type? icon-lib/2
-				vprobe type? icon-lib/3
-				vprobe type? icon-lib/4
+				;vprobe type? icon-lib/1
+				;vprobe type? icon-lib/2
+				;vprobe type? icon-lib/3
+				;vprobe type? icon-lib/4
 			]
 			
 			
@@ -514,52 +544,59 @@ FEFFFFFF
 				blk: parse-set-folder read folder
 			]
 			
-			vprobe blk
+			;vprobe blk
 			
 			foreach [icon sizes] blk [
-				either find sizes width [
-					vprint "loading icon directly"
-					; load the icon directly
-					img-name: to-file rejoin [ icon "-" width ".png"]
-					
-					img: either encapped-icons? [
-						select icon-lib img-name
-					][
-						load join folder img-name
-					]
+				;?? icon
+				;?? icons
+				if any [
+					not only
+					find icons safe-icon-name icon
 				][
-					vprint "scaling icon"
-					; missing icon size.
-					; load the largest icon and resize it (KEEPING ITS ALPHA CHANNEL!).
-					;probe "didn't find an appropriate icon"
-					
-					img-name:  rejoin [ "" icon "-" last sizes ".png"]
-					
-					v?? img-name
-					
-					img: either encapped-icons? [
-						vprobe extract icon-lib 2
-						vprint type? select icon-lib to-file img-name
-						select icon-lib to-file img-name
+					either find sizes width [
+						;vprint "loading icon directly"
+						; load the icon directly
+						img-name: to-file rejoin [ icon "-" width ".png"]
+						
+						img: either encapped-icons? [
+							select icon-lib img-name
+						][
+							load join folder img-name
+						]
 					][
-						load join folder img-name
+						;vprint "scaling icon"
+						;vprint width
+						; missing icon size.
+						; load the largest icon and resize it (KEEPING ITS ALPHA CHANNEL!).
+						;probe "didn't find an appropriate icon"
+						
+						img-name:  rejoin [ "" icon "-" last sizes ".png"]
+						
+						;v?? img-name
+						
+						img: either encapped-icons? [
+							;vprobe extract icon-lib 2
+							;vprint type? select icon-lib to-file img-name
+							select icon-lib to-file img-name
+						][
+							load join folder img-name
+						]
+						alpha: channel-copy img 'alpha 'red
+						
+						img: draw width * 1x1 compose [image img 0x0 (width * 1x1)]
+						alpha: draw width * 1x1 compose [image alpha 0x0 (width * 1x1)]
+						img: channel-copy/into alpha 'red 'alpha img
 					]
-					alpha: channel-copy img 'alpha 'red
 					
-					img: draw width * 1x1 compose [image img 0x0 (width * 1x1)]
-					alpha: draw width * 1x1 compose [image alpha 0x0 (width * 1x1)]
-					img: channel-copy/into alpha 'red 'alpha img
-				]
-				
-				
-				; do we replace or add a new icon
-				either plug: select set safe-icon-name icon [
-					;probe "REPLACING ICON"
-					fill* plug img
-				][
-					append set reduce [ safe-icon-name icon   liquify*/fill !plug img ]
-				]
 					
+					; do we replace or add a new icon
+					either plug: select set safe-icon-name icon [
+						;probe "REPLACING ICON"
+						fill* plug img
+					][
+						append set reduce [ safe-icon-name icon   liquify*/fill !plug img ]
+					]
+				]	
 			]
 		][
 			to-error rejoin ["icons/load-icons(): required set doesn't exist at " folder]

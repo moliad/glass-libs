@@ -120,7 +120,7 @@ slim/register [
 		aspects: make aspects [
 			
 			;-        color:
-			color: none
+			color: theme-glass-color
 
 
 			;-        bg-color:
@@ -148,7 +148,7 @@ slim/register [
 			;-        orientation:
 			; in what orientation will the progress work. 'vertical 'horizontal 'auto
 			; if its set to 'auto, fasten() will set this depending on parent frame orientation.
-			orientation: 'auto
+			orientation: 'horizontal
 			
 			
 			;-        min-dimension
@@ -187,6 +187,9 @@ slim/register [
 						maximum !integer
 						progress !integer
 						orientation !word
+						label !string
+						label-color  !color
+						font !any
 					]
 					
 					;-            glob/gel-spec:
@@ -203,7 +206,7 @@ slim/register [
 						;[]
 						
 						; fg layer
-						position dimension minimum maximum progress color bg-color orientation
+						position dimension minimum maximum progress color bg-color orientation label label-color font
 						[
 							
 							; BG
@@ -224,8 +227,18 @@ slim/register [
 								end: data/position= + sub-box/orientation data/dimension= - 2x2 data/minimum= data/maximum= data/progress= data/orientation=
 								[]
 							)
-							(prim-glass/corners data/position= + 1x1  end  theme-glass-color  theme-glass-transparency  2)
+							(prim-glass/corners data/position= + 1x1  end  data/color=  theme-glass-transparency  2)
+;							(prim-label data/position= + 1x1  end  data/color=  theme-glass-transparency  )
 							
+							line-width 1
+							fill-pen none
+							pen none
+							(
+								;probe data/label=
+								;probe data/font=
+								data/font=/size: 12
+								prim-label data/label= data/position= + 1x0 data/dimension=  black  data/font= 'center  
+							)
 							
 							
 						]
@@ -339,7 +352,7 @@ slim/register [
 				
 				parse spec [
 					any [
-						set data integer! (
+						set data number! (
 							switch int-count [
 								1 [
 									fill marble/aspects/minimum data
@@ -359,6 +372,9 @@ slim/register [
 									int-count: int-count + 1
 								]
 							]
+						)
+						| set data tuple! (
+							fill marble/aspects/color data
 						)
 						| skip
 					]

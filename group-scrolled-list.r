@@ -185,7 +185,10 @@ slim/register [
 			]
 			filter-pane: row tight [
 				field-marble: field ""
-				thin-button stiff 20x25 "*" [fill* field-marble/aspects/label copy ""]
+				thin-button stiff 20x25 "*" [
+					fill* field-marble/aspects/label copy "" 
+					gl/unfocus field-marble
+				]
 			]
 		]
 		
@@ -307,7 +310,24 @@ slim/register [
 									list-picked: make function! [event] bind/copy data group
 								]
 							]
-						)						
+						)
+						
+						| 'on-context-click set data block! (
+							;print "CONTEXT CLICK SETUP"
+							if object? get in group/list-marble 'actions [
+								group/list-marble/actions: make group/list-marble/actions [
+									list-context-start: make function! [event] bind/copy data group
+								]
+							]
+						)
+
+						| '.bulk set data [block! | word!] (
+							if word? data [ data: get data ]
+							unless block? data [to-error "glass/scrolled-list expects bulk data"]
+							;fill* marble/aspects/list data
+							
+							fill* group/aspects/items data
+						)
 						
 						
 						; set list data or pick action
@@ -333,7 +353,7 @@ slim/register [
 						
 						| set data pair! (
 							fill* group/material/user-min-dimension data
-						) 
+						)
 						
 						| skip 
 					]

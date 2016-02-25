@@ -102,6 +102,7 @@ slim/register [
 	field: slim/open 'style-field none
 	script-editor: slim/open 'style-script-editor none
 	button: slim/open 'style-button none
+	        slim/open/expose 'style-dragbar none [!dragbar]
 	list: slim/open 'style-list none
 	scroller: slim/open 'style-scroller none
 	choice: slim/open 'style-choice none
@@ -126,7 +127,7 @@ slim/register [
 	
 	slim/open/expose 'group-labeled-frame none [!group-labeled-frame]
 	
-	
+	slim/open/expose 'style-grid none [ !grid ]
 	
 	; build the default glass stylesheet
 	
@@ -368,7 +369,9 @@ slim/register [
 							pen (any [data/border-color= theme-border-color])
 							fill-pen white
 							box (data/position=) (data/position= + data/dimension= - 1x1)
-							(sl/prim-glass (data/position=) (data/position= + data/dimension= - 1x1) theme-color 205)
+							;(sl/prim-glass (data/position=) (data/position= + data/dimension= - 1x1) theme-color 205)
+							
+							
 			
 						]
 						
@@ -490,6 +493,27 @@ slim/register [
 				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/stylize()}]
 				vout
 			]
+
+
+			;-----------------
+			;-               dialect()
+			;-----------------
+			dialect: func [
+				marble [object!]
+				spec [block!]
+				stylesheet [block!] "Required so stylesheet propagates in marbles we create"
+			][
+				vin [{dialect()}]
+				parse spec [
+					any [
+						set val tuple! (
+							fill* marble/aspects/color val
+						)
+						
+						| skip
+					]
+				]				vout
+			]
 			
 			
 			glob-class: make glob-class [
@@ -498,8 +522,9 @@ slim/register [
 
 					input-spec: [
 						; list of inputs to generate automatically on setup these will be stored within glob/input
-						position !pair
+						position  !pair
 						dimension !pair 
+						color     !color
 					]
 					gel-spec: [
 						; event backplane
@@ -529,6 +554,7 @@ slim/register [
 
 	sl/collect-style/as make shadow-separator [
 		material: make material [fill-weight: 0x0 min-dimension: 2x2 ]
+		aspects: make aspects [color: white]
 		valve: make valve [
 			glob-class: make glob-class [
 				valve: make valve [
@@ -539,14 +565,14 @@ slim/register [
 						
 						
 						; fg layer
-						position dimension
+						position dimension color
 						[
 							line-width 1
 							;pen (0.0.0.245)
 							;line  (data/position= + (0x1 * data/dimension= - 3)) (data/position= + data/dimension= - 0x3)
 							pen (0.0.0.235)
 							line  (data/position= + (0x1 * data/dimension= - 2)) (data/position= + data/dimension= - 0x2)
-							pen (255.255.255.50)
+							pen (data/color= + 0.0.0.50)
 							line  (data/position= + (0x1 * data/dimension= - 1)) (data/position= + data/dimension= - 0x1)
 						]
 					]
@@ -556,10 +582,74 @@ slim/register [
 	] 'hseparator
 		
 	
+	;- drag bars
+	sl/collect-style/as make !dragbar [ aspects: make aspects [freedom: 0x1] ] 'Dragbar
+	;sl/collect-style/as make !dragbar [ aspects: make aspects [freedom: 1x0] ] 'vbar
 	
+	sl/collect-style/as make !dragbar [
+		valve: make valve [
+			glob-class: make glob-class [
+				valve: make valve [
+					;-            glob/gel-spec:
+					; different AGG draw blocks to use, one per layer.
+					; these are bound and composed relative to the input being sent to glob at process-time.
+					gel-spec: [
+						; event backplane
+						position dimension 
+						[
+							pen none 
+							fill-pen (to-color gel/glob/marble/sid) 
+							box (data/position=) (data/position= + data/dimension= - 1x1)
+						]
+		
+						; bg layer (ex: shadows, textures)
+						; keep in mind... this can be switched off for greater performance
+						;[]
+						
+						; fg layer
+						position dimension color corner hi-color hover?
+						[
+							line-width 1
+							fill-pen (
+								rtclr: either data/hover?= [
+									data/hi-color=
+								][
+									;probe (data/position=)
+									compose [
+										linear (data/position= ) 0 (data/dimension=/x * .75) 0 1 1 
+											( black + 0.0.0.230)
+											( black + 0.0.0.250)
+											( black + 0.0.0.255) 
+											;( black + 0.0.0.250)
+											;( black + 0.0.0.230)
+									]
+								]
+							)
+							;line-width 1
+							pen  ( either data/hover?= [
+								rtclr * .75
+								none
+							][
+								none
+							]) 
+							box (data/position=) (data/position= + data/dimension= ) 0
+							;arrow (data/position=) (data/position= + data/dimension= - 1x1)
+						]
+							
+						; controls layer
+						;[]
+						
+						; overlay layer
+						; like the bg, it may switched off, so don't depend on it.
+						;[]
+					]
+				]
+			]
+		]
+	] 'shadow-dragbar
 	
 	;- LABELS
-	sl/collect-style/as make marble/!marble [ aspects: make aspects [font: theme-title-font] ] 'Title
+	sl/collect-style/as make marble/!marble [ aspects: make aspects [font: theme-title-font label-color: theme-title-font/color] ] 'Title
 	sl/collect-style/as make marble/!marble [ aspects: make aspects [font: theme-subtitle-font] ] 'SubTitle
 	sl/collect-style/as make marble/!marble [ aspects: make aspects [font: theme-headline-font] ] 'headline
 	sl/collect-style/as make marble/!marble [ aspects: make aspects [font: theme-label-font] ] 'Label
@@ -632,7 +722,7 @@ slim/register [
 		
 		
 		;         label-auto-resize-aspect:
-		label-auto-resize-aspect: 'automatic
+		;label-auto-resize-aspect: 'automatic
 		
 		
 		aspects: make aspects [
@@ -665,7 +755,7 @@ slim/register [
 						;[]
 						
 						; fg layer
-						position dimension color label-color label align hover? focused? selected? padding font
+						position dimension color label-color label align hover? focused? selected? padding font corner
 						[
 							(
 								any [
@@ -698,6 +788,12 @@ slim/register [
 										pen  theme-knob-border-color
 										box (data/position= ) (data/position= + data/dimension= - 1x1) 5
 
+												line-width 1
+												pen none
+												fill-pen (theme-glass-color + 0.0.0.175)
+												;pen theme-knob-border-color
+												box (data/position= + 3x3) (data/position= + data/dimension= - 3x3) 2
+
 										(
 										either data/hover?= [
 											compose [
@@ -716,15 +812,42 @@ slim/register [
 									; default
 									all [ data/hover?= compose [
 										(
-											sl/prim-knob 
-												data/position= 
-												data/dimension= - 1x1
-												data/color=
-												theme-knob-border-color
-												'horizontal ;data/orientation=
-												1
-												4
+	;										prim-knob 
+	;											data/position= 
+	;											data/dimension= - 1x1
+	;											data/color=
+	;											theme-knob-border-color
+	;											'horizontal ;data/orientation=
+	;											4
+	;											(data/corner= )
+														
 										)
+										line-width 1
+										pen none
+										fill-pen (
+											;--------
+											; if the color was manually changed... 
+											; set its bg to that color, instead of pure white.
+											;---
+											either data/color= <> theme-knob-color [
+												data/color=
+											][
+												white
+											]
+										)
+										box (data/position=) (data/position= + data/dimension= - 1x1 ) (data/corner=)
+										fill-pen (theme-glass-color + 0.0.0.175)
+										pen (
+											(theme-glass-color + 0.0.0.175)
+										) 
+										box (data/position=) (data/position= + data/dimension= - 1x1 ) (data/corner=)
+										(sl/prim-drop-shadow data/position=  data/dimension= - 1x1   data/corner= )
+										
+										
+	;									line-width 2
+	;									fill-pen none
+	;									pen (data/color=)
+	;									box (data/position= + 3x3 ) (data/position= + data/dimension= - 1x1 - 3x3 ) (max 0 data/corner= - 1)
 									]]
 								]
 							)
@@ -733,9 +856,6 @@ slim/register [
 							fill-pen (data/label-color=)
 							; label
 							(sl/prim-label/pad data/label= data/position= + 1x0 data/dimension= data/label-color= data/font= data/align= data/padding=)
-							
-							
-							
 						]
 							
 						; controls layer
@@ -769,6 +889,7 @@ slim/register [
 	;- COMPLEX styles
 	sl/collect-style list/!list
 	sl/collect-style droplist/!droplist
+	sl/collect-style !grid
 	
 	
 	;- POP-UP styles

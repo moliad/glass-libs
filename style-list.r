@@ -72,6 +72,9 @@ slim/register [
 		unlink*: unlink
 		dirty*: dirty
 	]
+
+	slim/open/expose 'glue none [ !empty? ]
+
 	
 	sillica-lib: slim/open/expose 'sillica none [
 		get-aspect
@@ -124,9 +127,18 @@ slim/register [
 			;-        selected?:
 			selected?: false
 			
+			;-        selectable?:
+			;
+			; when set to false, clicking on the list doesn't select anything.
+			;
+			; this doesn't affect the currently chosen or visible items.  it simply deactivates clicking.
+			;
+			; there is no visual cue either. (you can chagne the bg color if you want to indicate a different state)
+			selectable?: true
+			
 			;-        color:
 			; color of bg
-			color: white * .8
+			color: white 
 			
 			;- 		LIST SPECIFICS
 			;-        list:
@@ -175,7 +187,6 @@ slim/register [
 			;-        leading:
 			; space between lines.
 			leading: 6
-			
 		]
 
 		
@@ -196,11 +207,9 @@ slim/register [
 			visible-items: none
 			
 			
-			
 			;-        row-count:
 			; returns the number of items in list.
 			row-count: none
-			
 			
 			
 			;-        chosen-items:
@@ -211,6 +220,15 @@ slim/register [
 			;
 			chosen-items: none
 			
+			
+			;--------------------------
+			;-        chosen?:
+			;
+			; when any selection is active, this turns true.
+			;
+			; should be used to toggle other plugs based on selection.
+			;--------------------------
+			chosen?: none
 			
 		]
 		
@@ -286,7 +304,7 @@ slim/register [
 						; list of inputs to generate automatically on setup these will be stored within glob/input
 						position !pair (random 200x200)
 						dimension !pair (100x30)
-						color !color  (random white)
+						color !color  
 						focused? !bool 
 						hover? !bool 
 						selected? !bool
@@ -317,7 +335,6 @@ slim/register [
 						; fg layer
 						position dimension color focused? selected? list list-index chosen
 						[
-							
 							(
 								d: data/dimension=
 								p: data/position=
@@ -327,15 +344,17 @@ slim/register [
 							)
 							
 							
-							(
-								;shadows
-								prim-cavity/colors
-									data/position= 
-									data/dimension= - 1x1
-									white
-									theme-border-color
-							)
-							
+;							(
+;								;shadows
+;								prim-cavity/colors
+;									data/position= 
+;									data/dimension= - 1x1
+;									white
+;									theme-border-color
+;							)
+							fill-pen (data/color= ) ;* .98)
+							pen none; theme-knob-border-color
+							box (p) (e)  
 							
 							; labels
 							pen none
@@ -375,7 +394,7 @@ slim/register [
 				vin [{glass/!} uppercase to-string list/valve/style-name {[} list/sid {]/item-from-coordinates()}]
 				i: content* list/aspects/list-index
 				
-				v?? i
+				;v?? i
 				; 2x4 is a hard-coded origin where drawing starts
 				picked: second coordinates - 2x4
 				picked: (to-integer (picked / (theme-list-font/size + content* list/aspects/leading)))
@@ -388,8 +407,7 @@ slim/register [
 			]
 			
 			
-			
-			
+						
 			
 			
 			
@@ -431,6 +449,38 @@ slim/register [
 				row
 			]
 			
+
+			;--------------------------
+			;-        clear-list()
+			;--------------------------
+			; purpose:  when the list item is the owner/main manipulator of data, we can let IT it clear the list.
+			;
+			; inputs:   
+			;
+			; returns:  
+			;
+			; notes:    you should not use this when the list is linked to a source.
+			;			this also clears the selection.
+			;
+			; to do:    
+			;
+			; tests:    
+			;--------------------------
+			clear-list: funcl [
+				list [object!]
+			][
+				vin "clear-list()"
+				
+				blk: content list/aspects/list
+				clear-bulk blk
+				dirty list/aspects/list
+				
+				blk: content list/aspects/chosen
+				clear blk
+				dirty list/aspects/chosen
+				
+				vout
+			]
 			
 			;-----------------
 			;-        choose-item()
@@ -443,8 +493,9 @@ slim/register [
 			;-----------------
 			choose-item: func [
 				list [object!]
-				item [string! none!] "none clears the chosen list"
+				item [string! none!] "none CLEARs the chosen list"
 				/add "add this to chosen, don't replace it, only valid if list/multi-choose? = true "
+				/remove "remove this item instead of adding it."
 				/local c l cplug
 			][
 				vin [{glass/!} uppercase to-string list/valve/style-name {[} list/sid {]/choose-item()}]
@@ -456,32 +507,37 @@ slim/register [
 					cplug/valve/notify cplug
 				][
 					if find-same l item [
-						either all [
-							add
-							list/multi-choose?
+						either remove [
+							system/words/remove find c item
+							cplug/valve/notify cplug
 						][
-							;vprint "MULTI!"
-							; only change list if item isn't already in it
-							unless find-same c item [
-								; multi-choose (add new item to chosen)
-								include-different c item
-								
-								; make sure liquid notifies any linked or piped plugs
-								cplug/valve/notify cplug
-							]
-						][
-							;vprint "single choose"
-							; only change list if item isn't already in it OR chosen has more than one item in it
-							unless all [
-								1 = length? c
-								find-same c item
+							either all [
+								add
+								list/multi-choose?
 							][
-								; single choose (replace any chosen by new item)
-								clear c
-								append c item
-							
-								; make sure liquid notifies any linked or piped plugs
-								cplug/valve/notify cplug
+								;vprint "MULTI!"
+								; only change list if item isn't already in it
+								unless find-same c item [
+									; multi-choose (add new item to chosen)
+									include-different c item
+									
+									; make sure liquid notifies any linked or piped plugs
+									cplug/valve/notify cplug
+								]
+							][
+								;vprint "single choose"
+								; only change list if item isn't already in it OR chosen has more than one item in it
+								unless all [
+									1 = length? c
+									find-same c item
+								][
+									; single choose (replace any chosen by new item)
+									clear c
+									append c item
+								
+									; make sure liquid notifies any linked or piped plugs
+									cplug/valve/notify cplug
+								]
 							]
 						]
 					]
@@ -644,7 +700,44 @@ slim/register [
 			
 			
 			
-			
+			;--------------------------
+			;-        pick-string()
+			;--------------------------
+			; purpose:  picks all items with have a string equal to given string!
+			;
+			; returns:  nothing for now.
+			;--------------------------
+			pick-string: funcl [
+				list [object!]
+				label [string!]
+				;/sub-string "also match if given label is PART of list's item list"
+			][
+				vin "pick-string()"
+				ch-plug: list/aspects/chosen 
+				ch-items: content* ch-plug
+				items: copy next content* list/aspects/list
+
+				remove-each [lbl spec data] items [
+					lbl <> label
+				]
+				
+				;---
+				; keep only labels, cause we put this within chosen-items
+				lbls: extract items 3
+
+				clear ch-items
+				append  ch-items  lbls
+				ch-plug/valve/notify ch-plug
+				
+				vout
+				
+				either empty? items [
+					none
+				][
+					items
+				]
+			]
+
 			
 			
 			
@@ -657,7 +750,7 @@ slim/register [
 				/local list picked i l data-col label-col
 			][
 				vin [{HANDLE LIST EVENTS}]
-				vprint event/action
+				;vprint event/action
 				list: event/marble
 				switch/default event/action [
 					start-hover [
@@ -669,9 +762,16 @@ slim/register [
 					]
 					
 					select [
+						;-----------------
+						; converts mouse click into list item selection event.
+						;-----------------
 						;vprint "RESOLVING CHOSEN ITEM"
-						if picked: item-from-coordinates list event/offset [
-						;v?? picked
+						fill* list/aspects/selected? true ; this is not use directly by this marble's graphics.
+						if all [
+							content event/marble/aspects/selectable?
+							picked: item-from-coordinates list event/offset 
+						][
+							;v?? picked
 						
 							if picked: find-row list picked [
 								;probe content* list/aspects/chosen
@@ -680,7 +780,22 @@ slim/register [
 									action: 'list-picked
 									picked: (first picked)
 									; we now return the whole row of list, since it may contain user data beyond
-									; what the list requires.
+									; what the list marble requires.
+									picked-data: (picked)
+									chosen: (content* list/aspects/chosen)
+								]
+							]
+						]
+					]
+					
+					CONTEXT-PRESS [
+						if picked: item-from-coordinates list event/offset [
+							if picked: find-row list picked [
+								event-lib/queue-event make event compose/only [
+									action: 'list-context-start
+									picked: (first picked)
+									; we now return the whole row of list, since it may contain user data beyond
+									; what the list marble requires.
 									picked-data: (picked)
 									chosen: (content* list/aspects/chosen)
 								]
@@ -692,11 +807,15 @@ slim/register [
 						; if list doesn't mave multi-choose? enabled, it will ignore /add and replace chosen.
 						either event/control? [
 							;vprint "-----------> MULTI CHOOSE"
-							choose-item/add list event/picked
+							;probe event/picked
+							either find content event/marble/aspects/chosen event/picked [
+								list/valve/choose-item/remove list event/picked
+							][
+								list/valve/choose-item/add list event/picked
+							]
 						][
-							choose-item list event/picked
+							list/valve/choose-item list event/picked
 						]
-						
 					]
 										
 					; successfull click
@@ -823,7 +942,8 @@ slim/register [
 				list/material/chosen-items: liquify* epoxy/!bulk-filter
 				list/filter-mode-plug: liquify*/fill !plug 'same
 				
-				
+				list/material/chosen?: liquify*/link !empty? list/aspects/chosen
+
 				vout
 			]
 			
@@ -866,11 +986,11 @@ slim/register [
 			; so the the spec block can be used to do many wild things, even change the 
 			; marble type on the fly!!
 			;-----------------
-			specify: func [
+			specify: funcl [
 				marble [object!]
 				spec [block!]
 				stylesheet [block!] "Required so stylesheet propagates in marbles we create"
-				/local data pair-count tuple-count block-count
+				;/local data pair-count tuple-count block-count
 			][
 				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/specify()}]
 				
@@ -882,15 +1002,28 @@ slim/register [
 					any [
 						copy data ['with block!] (
 							do bind/copy data/2 marble 
-							
-						) | 
-						'stiff (
-							fill* marble/material/fill-weight 0x0
-						) |
-						'stretch set data pair! (
-							fill* marble/material/fill-weight data
-						) |
-						set data tuple! (
+						) 
+						
+						| '.bulk set data block! (
+							fill* marble/aspects/list data
+						)
+						
+						| '.list set data block! (
+							blk: make-bulk 3
+							foreach item data [
+								append blk reduce [ form :item  copy [ ]  :item ]
+							]
+							fill* marble/aspects/list  blk
+							blk: none
+						)
+						
+						| '.non-selectable (fill* marble/aspects/selectable? false)
+						
+						| 'stiff (fill* marble/material/fill-weight 0x0)
+						
+						| 'stretch set data pair! (fill* marble/material/fill-weight data)
+						
+						| set data tuple! (
 							tuple-count: tuple-count + 1
 							switch tuple-count [
 								1 [set-aspect marble 'label-color data]
@@ -898,18 +1031,19 @@ slim/register [
 							]
 							
 							set-aspect marble 'color data
-						) |
-						set data pair! (
+						)
+						
+						| set data pair! (
 							pair-count: pair-count + 1
 							switch pair-count [
 								1 [	fill* marble/material/min-dimension data ]
 								2 [	set-aspect marble 'offset data ]
 							]
-						) |
-						set data string! (
-							fill* marble/aspects/label data
-						) |
-						set data block! (
+						)
+						
+						| set data string! ( fill* marble/aspects/label data )
+						
+						| set data block! (
 							block-count: block-count + 1
 							switch block-count [
 								1 [
@@ -923,8 +1057,9 @@ slim/register [
 									]
 								]
 							]
-						) |
-						skip 
+						)
+						
+						| skip 
 					]
 				]
 				

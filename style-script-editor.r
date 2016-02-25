@@ -229,7 +229,7 @@ slim/register [
 			
 			
 			;--------------------------
-			;-             search-string:
+			;-        search-string:
 			;
 			; when set, some display and events might react differently.
 			;

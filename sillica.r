@@ -199,11 +199,12 @@ slim/register [
 	;--------------------------------------
 	set 'theme-mono-font mono-font
 	set 'theme-base-font base-font 
-	set 'theme-bg-color  white * 0.85
-	set 'theme-color 40.100.255
+	set 'theme-bg-color  white * 0.97
+	set 'theme-color  40.100.255
+	set 'theme-flat-color  120.180.255
 	set 'theme
 	
-	
+
 	
 	;----------------------------------
 	; custom theme management
@@ -217,6 +218,7 @@ slim/register [
 	
 	
 	
+	
 	;-        -fonts
 	;----------------------------------
 	; default theme management
@@ -224,7 +226,9 @@ slim/register [
 	set 'theme-knob-font make theme-base-font [size: 14 ];  bold?: true]
 	set 'theme-small-knob-font make theme-base-font [size: 12 bold?: none]
 	set 'theme-menu-item-font make theme-base-font [size: 12 bold?: none]
-	set 'theme-list-font make theme-base-font [size: 11]
+	set 'theme-list-font make theme-base-font [size: 11 ]
+	;set 'theme-grid-font make theme-base-font [size: 12 name: "Arial" style: 'bold]
+	set 'theme-grid-font make theme-base-font [size: 12 name: "Arial" style: none]
 	
 	set 'theme-field-font make theme-mono-font [size: 12]
 	set 'theme-editor-font make theme-mono-font [size: 12]
@@ -244,7 +248,7 @@ slim/register [
 	; these are set globally
 	set 'shadow 0.0.0.128
 	set 'light-shadow 0.0.0.200
-	set 'theme-hi-color theme-color + 0.0.0.150
+	set 'theme-hi-color theme-flat-color ;theme-color + 0.0.0.150
 	set 'theme-recess-color theme-bg-color * .95
 	set 'theme-window-color theme-bg-color
 	set 'theme-border-color white * 0.75
@@ -255,11 +259,11 @@ slim/register [
 	set 'theme-bevel-color white * 0.85
 	set 'theme-requestor-bg-color white * 0.89
 	set 'theme-progress-bg-color white
+	set 'theme-select-color theme-color + 80.80.80
 	
 	set 'theme-frame-color white * 0.4
 	set 'theme-frame-label-color white 
 	set 'theme-frame-bg-color theme-bg-color
-	
 	
 	set 'theme-editor-comment-color blue
 	
@@ -965,6 +969,9 @@ slim/register [
 		/local text-size offset font-size
 	][
 		vin [{prim-label()}]
+
+		;probe text
+		;probe color
 		
 		p: any [p 0x0]
 
@@ -993,15 +1000,15 @@ slim/register [
 		offset: switch/default align [
 			W WEST left [
 				p: p * 1x0
-				position + (1x0 * p/x) + (size - text-size / 2 * 0x1) + 0x-2 + p
+				position + (1x0 * p/x) + (size - text-size / 2 * 0x1) + p
 			]
 			E EAST right [
 				p: p * 1x0
-				position - (1x0 * p/x) + (size - text-size * 1x0 ) + (size - text-size / 2 * 0x1) - 0x2 - p
+				position - (1x0 * p/x) + (size - text-size * 1x0 ) + (size - text-size / 2 * 0x1)  - p
 			]
 			S SOUTH bottom [
 				p: p * 0x1
-				(size - text-size / 2 * 1x0) + (size - text-size * 0x1) + position - 0x2 - p;+ (p/x * 1x0)
+				(size - text-size / 2 * 1x0) + (size - text-size * 0x1) + position  - p;+ (p/x * 1x0)
 			
 			]
 		][
@@ -2535,7 +2542,6 @@ position: pos-mem
 			
 		][
 			to-error "Invalid reference style... not a glass marble!"
-		
 		]
 		
 		; cleanup GC

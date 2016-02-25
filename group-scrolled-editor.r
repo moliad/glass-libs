@@ -302,11 +302,13 @@ slim/register [
 							vprobe group/editor-marble/actions
 						)
 						
-;						| 'stiff (
-;							group/stiffness: 'xy
-;							;fill* group/material/fill-weight 0x0
-;
-;						)
+						| 'stiff (
+							fill* group/editor-marble/material/fill-weight 0x0
+							;group/stiffness: 'xy
+							;fill* group/material/fill-weight 0x0
+
+						)
+						
 ;						| 'stiff-x (
 ;							group/stiffness: 'x
 ;							;fill* group/material/fill-weight 0x0
@@ -356,11 +358,9 @@ slim/register [
 ;						)
 						
 						| set data pair! (
-							; set the cursor
-							
-							vprint "PAIRS!!!"
-							v?? data
-							;fill* group/material/user-min-dimension data
+							;vprint "PAIRS!!!"
+							;v?? data
+							fill* group/editor-marble/material/min-dimension data
 						) 
 						
 						| skip 

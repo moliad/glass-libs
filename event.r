@@ -2272,6 +2272,10 @@ slim/register [
 						;----
 						;-        -TIME
 						TIME [
+							;probe now/time/precise
+							;probe event/tick
+							;probe event/viewport/refresh-interval
+						
 							;prin [".  " event/tick ":" event/viewport/next-refresh]
 							;vprint "REFRESH?"
 							either all [

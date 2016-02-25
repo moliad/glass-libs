@@ -481,6 +481,15 @@ FEFFFFFF
 		icon-set: none
 		
 		
+		;--------------------------
+		;-             direction:
+		;
+		; 
+		;--------------------------
+		direction: 'vertical
+		
+		
+		
 		
 		;-    radio-list:
 		; when this is filled with a block containing other marbles,
@@ -624,16 +633,22 @@ FEFFFFFF
 										)
 										(
 											either image? data/image= [
+												either gel/glob/marble/direction = 'vertical [
+													ori: 1x0
+													ctr-ori: 0x1
+												][
+													ori:  0x1
+													ctr-ori: 1x0
+												]
 												
-												
-												 tmp: (data/position= + (data/dimension= / 2 * 1x0) - (data/image=/size / 2 * 1x0)  ) + 
-													  ((data/dimension= - data/label-size= - data/icon-spacing= - data/image=/size) / 2 * 0x1)
+												 tmp: (data/position= + (data/dimension= / 2 * ori) - (data/image=/size / 2 * ori)  ) + 
+													  ((data/dimension= - data/label-size= - data/icon-spacing= - data/image=/size) / 2 * ctr-ori)
 													
 												compose [
 													pen none
 													fill-pen none
 													
-													IMAGE-FILTER NEAREST
+													;IMAGE-FILTER NEAREST
 													image (data/image=) (tmp)
 													; uncomment to put a red box around the image. allows to debug sizing algorythm.
 													;pen red
@@ -649,7 +664,7 @@ FEFFFFFF
 										fill-pen (data/label-color=)
 										
 										; label
-										(prim-label/pad data/label= data/position= + 1x0 data/dimension= data/label-color= data/font= 'bottom data/padding=)
+										(ori: either gel/glob/marble/direction = 'vertical['bottom]['right] prim-label/pad data/label= data/position= + 1x0 data/dimension= data/label-color= data/font= ori data/padding=)
 										
 										
 									]
@@ -938,9 +953,6 @@ FEFFFFFF
 				
 				mat/auto-size: liquify* epoxy/!pair-add
 				
-				
-				
-				
 				vout
 			]
 			
@@ -982,6 +994,7 @@ FEFFFFFF
 			fasten: funcl [
 				icon
 			][
+
 				
 				vin [{glass/!} uppercase to-string icon/valve/style-name {[} icon/sid {]/fasten()}]
 				; this causes massive slow down, since each icon state
@@ -989,6 +1002,12 @@ FEFFFFFF
 				mat: icon/material
 				apct: icon/aspects
 				
+
+				if icon/direction = 'horizontal [
+					; mutate the direction !! 
+					mat/inside-size/valve: epoxy/!horizontal-accumulate/valve
+				]
+
 				fill* icon/material/icon-size content* icon/material/image
 				
 				; we only have icon spacing when there is a label.
@@ -1057,8 +1076,17 @@ FEFFFFFF
 							fill* marble/aspects/label none
 						)
 						
+						| 'horizontal (
+							marble/direction: 'horizontal
+						)
+						
 						| ['on | 'true | #[true]] (
 							fill* marble/aspects/engaged? true
+							;update-icon marble
+						)
+
+						| ['off | 'false | #[false]] (
+							fill* marble/aspects/engaged? false
 							;update-icon marble
 						)
 						

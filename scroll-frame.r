@@ -83,7 +83,9 @@ slim/register [
 		prim-x
 		prim-label
 	]
-	epoxy-lib: slim/open/expose 'epoxy none [!box-intersection]
+	epoxy-lib: slim/open/expose 'epoxy none [
+		!box-intersection
+	]
 
 	
 	frame-lib: slim/open 'frame none
@@ -383,87 +385,6 @@ slim/register [
 			]
 			
 	
-
-			;-----------------
-			;-        !place-at-edge: []
-			;
-			; this is a purpose-built positioner for scrollers
-			;
-			; inputs:
-			;    frame-position
-			;    frame-dimension
-			;    edge
-			;    marble-min-size: based on edge, we will use x or y value.
-			;-----------------
-			!place-at-edge: process* '!place-at-edge [
-				position dimension edge min-size
-			][
-				;vin [{!place-at-edge/process}]
-				
-				position: pick data 1
-				dimension: pick data 2
-				edge: pick data 3
-				min-size: 1x1 * pick data 4 ; can be a width
-				
-			
-				
-				plug/liquid: switch/default edge [
-					; synonym for bottom
-					horizontal [
-						position + ( dimension - min-size * 0x1) ;- 0x1
-					]
-					; synonym for right
-					vertical [
-						position + ( dimension - min-size * 1x0) ;- 1x0
-					]
-				][0x0]
-				
-				;vout
-			]
-			
-			;-----------------
-			;-        !dimension-at-edge: []
-			;
-			; this is a purpose-built positioner for scrollers
-			;
-			; inputs:
-			;    frame-position
-			;    frame-dimension
-			;    edge
-			;    marble-min-size: based on edge, we will use x or y value.
-			;-----------------
-			!dimension-at-edge: process* '!dimension-at-edge [
-				position dimension edge min-size
-			][
-				;vin [{!dimension-at-edge/process}]
-				
-				position: pick data 1
-				dimension: pick data 2
-				edge: pick data 3
-				min-size: 1x1 * pick data 4 ; can be a width
-				
-;			    v?? position
-;			    v?? dimension
-;			    v?? edge
-;			    v?? min-size
-;			    
-				
-				plug/liquid: switch/default edge [
-					; synonym for bottom
-					horizontal [
-						( dimension * 1x0) + (min-size * -1x1)
-					]
-					; synonym for right
-					vertical [
-						( dimension * 0x1) + (min-size * 1x-1)
-					]
-				][0x0]
-				
-				
-				;vout
-			]
-			
-			
 			;-----------------
 			;-        materialize()
 			;-----------------
@@ -495,10 +416,11 @@ slim/register [
 				
 				
 				; mutate scrollers
-				frame/v-scroller/material/position/valve: !place-at-edge/valve
-				frame/v-scroller/material/dimension/valve: !dimension-at-edge/valve
-				frame/h-scroller/material/position/valve: !place-at-edge/valve
-				frame/h-scroller/material/dimension/valve: !dimension-at-edge/valve
+				frame/v-scroller/material/position/valve:  epoxy-lib/!place-at-edge/valve
+				frame/v-scroller/material/dimension/valve: epoxy-lib/!dimension-at-edge/valve
+				frame/h-scroller/material/position/valve:  epoxy-lib/!place-at-edge/valve
+				frame/h-scroller/material/dimension/valve: epoxy-lib/!dimension-at-edge/valve
+				
 				
 				; mutate inner-frame
 				;frame/inner-frame/material/dimension/valve: epoxy-lib/!pair-max/valve

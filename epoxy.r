@@ -423,53 +423,34 @@ slim/register [
 	;
 	; note that if the input(s) have different items (pair, block, tuple, etc)
 	; the X will use xdata/1  and  Y will use ydata/2 
-	!to-pair: make !inlet [
-		valve: make valve [
+	!to-pair: processor 'to-pair [
+		vin [{to-pair/process()}]
 		
-			;-         type:
-			type: 'to-pair
-			
-	
-			;-----------------
-			;-         process()
-			;-----------------
-			process: func [
-				plug
-				data
-				/local xdata ydata
-			][
-				vin [{to-pair/process()}]
-				plug/liquid: either switch length? data [
-					1 [
-						xdata: first data
-						ydata: xdata
-					]
-					
-					2 [
-						xdata: first data
-						ydata: second data
-					]
-				][
-					if find [ tuple! pair! block! ] type?/word xdata [
-						xdata: xdata/1
-					]
-					xdata: 1x0 * any [xdata 0]
-					
-					if find [ tuple! pair! block! ] type?/word ydata [
-						; in case block isn't of length 2, we fallback to length 1
-						ydata: any [ydata/2 ydata/1]
-					]
-					ydata: 0x1 * any [ydata 0]
-					
-					xdata + ydata
-				][ 	
-					0x0
-				]
-				
-				vout
+		plug/liquid: if all [
+			xdata: pick data 1
+			ydata: any [ 
+				pick data 2
+				xdata
 			]
+		][
+			if find [ tuple! pair! block! ] type?/word xdata [
+				xdata: xdata/1
+			]
+			xdata: 1x0 * any [xdata 0]
 			
+			if find [ tuple! pair! block! ] type?/word ydata [
+				; in case block isn't of length 2, we fallback to length 1
+				ydata: any [ydata/2 ydata/1]
+			]
+			ydata: 0x1 * any [ydata 0]
+			
+			xdata + ydata
+		][
+			0x0
 		]
+			
+		
+		vout
 	]
 	
 	
@@ -551,21 +532,20 @@ slim/register [
 	;-----------------
 	;-     !x-from-pair:[]
 	;-----------------
-	!x-from-pair: process* '!x-from-pair [
-	][
-		vin [{!x-from-pair()}]
+	!x-from-pair: processor '!x-from-pair [
+		;vin [{!x-from-pair()}]
 		plug/liquid: first first data
-		vout
+		;vout
 	]
+	
 	
 	;-----------------
 	;-     !y-from-pair:[]
 	;-----------------
-	!y-from-pair: process* '!y-from-pair [
-	][
-		vin [{!y-from-pair()}]
+	!y-from-pair: processor '!y-from-pair [
+		;vin [{!y-from-pair()}]
 		plug/liquid: second first data
-		vout
+		;vout
 	]
 	
 	
@@ -650,6 +630,177 @@ slim/register [
 	]
 	
 	
+	;--------------------------
+	;-     !purified-type
+	;
+	;   notes:  -not all type conversion pairs may work, use logically
+	;
+	;           -also note that some types are value converted to appear logical in GUIs
+	;            this IS part of Glass after all.  ex: is file<->string which use rebol<->OS
+	;            representations
+	;  
+	;--------------------------
+	!purified-type: make !plug [
+		;--------------------------
+		;-         dtype
+		;
+		; the type we must cast to.
+		;
+		; when an invalid type convertion occurs, the output is default-value
+		;
+		;-------------------------
+		; ATTENTION:  we use datatype! values, not their word! equivalent...
+		;             i.e. #[datatype! string!]  not 'string!
+		;--------------------------
+		dtype: string!
+		
+		;--------------------------
+		;-             default-value:
+		;
+		; this is used when conversion is impossible.
+		;--------------------------
+		default-value: ""
+		
+		;--------------------------
+		;-             update-default:
+		;
+		; when true, the default-value will be updated everytime it is sucessful.
+		;
+		; we do not support any function values for plug/dtype
+		;--------------------------
+		update-default: true
+		
+		valve: make valve [
+			type: '!purified-type
+						
+			;--------------------------
+			;-         purify()
+			;--------------------------
+			; purpose: converts input to type set in plug.
+			;--------------------------
+			purify: funcl [
+				plug
+			][
+				vin ["purified-type/purify(" plug/dytpe ")" ]
+				
+				if any-function? plug/dtype [
+					to-error "purified-type/purify() function types are not allowed for plug/dtype"
+				]
+				
+				unless (type? plug/liquid ) = ( plug/dtype ) [
+					val: plug/liquid
+					plug/liquid: none
+					attempt [
+						switch/default plug/dtype [
+							;---
+							; TO STRING
+							;---
+							#[datatype! string!] [
+								switch/default type? val [
+									;------
+									; FROM STRING
+									;---
+									#[datatype! string!] 
+									#[datatype! binary!] [
+										plug/liquid: as-string val
+									]
+									
+									;------
+									; FROM NONE
+									;---
+									#[datatype! none!][
+										plug/liquid: copy ""
+									]
+									
+									;------
+									; FROM FILE!
+									;---
+									#[datatype! file!][
+										plug/liquid: to-local-file clean-path val
+									]
+									
+									
+								][
+									plug/liquid: mold val
+								]
+							]
+							
+							;---
+							; TO INTEGER
+							;---
+							#[datatype! integer!] [
+								plug/liquid: to-integer val
+							]
+
+							;------
+							; TO FILE!
+							;---
+							#[datatype! file!][
+								switch/default type? val [
+									;------
+									; FROM STRING
+									;---
+									#[datatype! string!] [
+										plug/liquid: to-rebol-file val
+									]
+								][
+									either file? plug/default-value [
+										plug/liquid: plug/default-value
+									][
+										plug/liquid: %./new-file.txt
+									]
+								]
+							]
+						][
+							plug/liquid: to plug/dtype val
+						]
+					]
+				]
+
+				either (type? plug/liquid ) = ( plug/dtype ) [
+					;----------
+					; SUCCESS HANDLING
+					if plug/update-default [
+						plug/default-value: plug/liquid
+					]
+				][
+					;----------
+					; ERROR HANDLING
+					plug/liquid: plug/default-value
+				]
+				vout
+				false
+			]
+			
+		]
+	]
+	
+	
+	;------------------------------
+	;-     !piped-to-datatype
+	;
+	; a plug which creates a !datatyped-pipe-master when piped.
+	;
+	; this is used when a value needs to be typed whatever its pipe clients supply.
+	;------------------------------
+	!piped-to-datatype: make !plug [
+		valve: make valve [
+			type: '!piped-to-datatype
+			pipe-server-class: !purified-type
+		]
+	]
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	;----------------------------------------------------------
 	;-  
@@ -659,11 +810,14 @@ slim/register [
 	
 	;------------------------------
 	;-     !bulk-row-count[]
-	;
+	;------------------------------
 	; returns the number of rows in an bulk using a flat block as data and 
 	; a column size
 	;
-	; if the column size isn't linked, the we fallback to 1, usefull for lists.
+	; if the column size isn't linked, the we fallback to 1, useful for lists.
+	;
+	; note we use a pretty drastic measure, we do not use the bulk functions to save processing.
+	;------------------------------
 	!bulk-row-count: make !plug [
 	
 		valve: make valve [
@@ -679,17 +833,18 @@ slim/register [
 			][
 				vin [{!bulk-row-count/process()}]
 				
-				plug/liquid: either all [
-					block? blk: pick data 1
-					any [
-						integer? cols: bulk-rows blk
-						;cols: 1
+				plug/liquid: any [
+					all [
+						block? blk: pick data 1
+						block? hdr: pick blk 1
+						integer? cols: select hdr first [columns:] ; this is how to select using set words!!!
+						cols > 0
+						((length? blk) - 1) / cols
 					]
-				][
-					cols
-				][
+					
+					;---
 					; we normalize the value to an integer, if first input isn't a block or not a bulk.
-					1
+					0
 				]
 				
 				vout
@@ -829,7 +984,7 @@ slim/register [
 					columns: get-bulk-property bulk 'columns
 					
 					; if this bulk has a defined label column use it, otherwise use the first one by default.
-					column: any [get-bulk-property bulk 'label-column 1]
+					column: any [ get-bulk-property bulk 'label-column 1 ]
 					line-height: font/size + leading * 0x1
 
 
@@ -1275,24 +1430,39 @@ slim/register [
 		][
 			300x300
 			;probe length? data
-;			?? from-point
-;			?? to-point
-;			?? from-dimension
-;			?? to-position
-;			?? to-dimension
-;			?? from-offset
+			;?? from-point
+			;?? to-point
+			;?? from-dimension
+			;?? to-position
+			;?? to-dimension
+			;?? from-offset
 		
+			;----------
+			; the marble we are positioning
+			;----------
 			src-offset: from-offset + switch/default from-point [
 				center [
 					to-dimension / 2
 				]
+				top-left [
+					0x0
+				]
 			][0x0]
 			
-			dest-offset: switch/default to-point [
+			;----------
+			; The marble we are aligning against
+			;----------
+			dest-offset: to-position + switch/default to-point [
 				center [
 					from-dimension / -2
 				]
-			][to-position]
+				bottom-left [
+					(to-dimension * 0x1)
+				]
+				top-left [
+					0x0
+				]
+			][0x0]
 			
 			src-offset + dest-offset
 		][
@@ -1453,7 +1623,7 @@ slim/register [
 				; add up size in Y
 				foreach item next data [
 					;plug/liquid: max plug/liquid item * 1x0 + plug/liquid 
-					plug/liquid: max item item * 1x0 + plug/liquid 
+					plug/liquid: max item  item * 1x0 + plug/liquid 
 				]
 				vout
 			]
@@ -1530,6 +1700,84 @@ slim/register [
 		]
 	]
 	
+
+
+	;-----------------
+	;-        !place-at-edge: []
+	;
+	; this is a purpose-built positioner for scrollers
+	;
+	; inputs:
+	;    frame-position
+	;    frame-dimension
+	;    edge
+	;    marble-min-size: based on edge, we will use x or y value.
+	;-----------------
+	!place-at-edge: processor '!place-at-edge [
+		;vin [{!place-at-edge/process}]
+		
+		position: pick data 1
+		dimension: pick data 2
+		edge: pick data 3
+		min-size: 1x1 * pick data 4 ; can be a width
+		
+	
+		
+		plug/liquid: switch/default edge [
+			; synonym for bottom
+			horizontal [
+				position + ( dimension - min-size * 0x1) ;- 0x1
+			]
+			; synonym for right
+			vertical [
+				position + ( dimension - min-size * 1x0) ;- 1x0
+			]
+		][0x0]
+		
+		;vout
+	]
+	
+	;-----------------
+	;-        !dimension-at-edge: []
+	;
+	; this is a purpose-built positioner for scrollers
+	;
+	; inputs:
+	;    frame-position
+	;    frame-dimension
+	;    edge
+	;    marble-min-size: based on edge, we will use x or y value.
+	;-----------------
+	!dimension-at-edge: processor '!dimension-at-edge [
+		;vin [{!dimension-at-edge/process}]
+		
+		position: pick data 1
+		dimension: pick data 2
+		edge: pick data 3
+		min-size: 1x1 * pick data 4 ; can be a width
+		
+;			    v?? position
+;			    v?? dimension
+;			    v?? edge
+;			    v?? min-size
+;			    
+		
+		plug/liquid: switch/default edge [
+			; synonym for bottom
+			horizontal [
+				( dimension * 1x0) + (min-size * -1x1)
+			]
+			; synonym for right
+			vertical [
+				( dimension * 0x1) + (min-size * 1x-1)
+			]
+		][0x0]
+		
+		;vout
+	]
+	
+			
+
 	
 	;-     !vertical-fill-dimension[]
 	; inputs:
@@ -1816,17 +2064,16 @@ slim/register [
 						/local val off space min-val max-val tmp-val orientation vertical? ratio loff
 					][
 ;						print "^/"
-						vin [{scroller/process()}]
+						;vin [{scroller bridge process()}]
 ;						?? ch
 ;						?? data
 						val: 0
 						off: 0x0
 						
 ;						print ["current " plug/current-value]
-						
-						space: pick data 4
 						min-val: pick data 2
 						max-val: pick data 3
+						space: pick data 4
 						orientation: pick data 5
 						
 ;						?? min-val
@@ -1842,21 +2089,15 @@ slim/register [
 ;						]
 						
 						val-range: max-val - min-val
-						
 ;						?? val-range
-						
 						 
 						vertical?: 'vertical = any [orientation orientation: 'vertical]
-						
 ;						?? orientation
 						
 						space: any [
 							all [vertical? space/y]
 							space/x
 						]
-						
-						;print "----"
-						;?? ch
 						
 						; if ch is set, it means the mud was set directly.
 						; otherwise it means links changed.
@@ -1945,19 +2186,12 @@ slim/register [
 						;print "------>"
 						;print ["value-range bridge: " mold plug/liquid]
 						;print "------>"
-						vout
+						;vout
 					]
 				]
 			]
 		]
 	]	
-	
-	
-	
-	
-	
-	
-	
 ]
 
 

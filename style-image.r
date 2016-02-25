@@ -118,13 +118,15 @@ slim/register [
 	
 		;-    Aspects[ ]
 		aspects: make aspects [
-			;-    size:
+			;-        size:
 			size: 200x200
 			
 			
 			;-        image:
 			; contains the image to show.
-			image: draw 300x300 compose [fill-pen (gold * .8) box 0x0 300x300 fill-pen red line-pattern 5 5 pen white black circle 49x49 30]
+			image: draw 300x300 compose [
+				fill-pen (gold * .8) box 0x0 300x300 fill-pen red line-pattern 5 5 pen white black circle 49x49 30
+			]
 			
 			
 			;-        label:
@@ -249,7 +251,18 @@ slim/register [
 							;pen (data/border-style=)
 							pen none
 							fill-pen none
-							image (data/image=) (data/position= + data/padding=) (data/dimension= - 1x1 + data/position=  - data/padding= ) 
+							IMAGE-FILTER nearest 
+							image (data/image=) (data/position= + data/padding=) (
+								final-pos: (data/dimension=  +  data/position=  - (data/padding= ) )
+								final-size: final-pos - data/position=
+								;print [ "data/dimension=:" data/dimension=]
+								;print [ "data/position=:" data/position=]
+								;print [ "data/padding=:" data/padding=]
+								;print [ "final size=:" final-size]
+								;?? final-size
+								final-pos 
+							) 
+							;IMAGE-FILTER nearest  
 							fill-pen none
 							pen (data/border-style=)
 							line-width (data/border-size=)
@@ -316,6 +329,14 @@ slim/register [
 						
 						| 'no-shadow (
 							fill* marble/aspects/label-shadow-color none
+						)
+						
+						; removes all styling and label
+						| 'plain (
+							fill* marble/aspects/label-color none
+							fill* marble/aspects/label-shadow-color none
+							fill* marble/aspects/border-size 0
+							fill* marble/aspects/border-style none
 						)
 						
 						; we attempt to link to marbles automatically!!!
