@@ -252,12 +252,12 @@ slim/register [
 	set 'theme-recess-color theme-bg-color * .95
 	set 'theme-window-color theme-bg-color
 	set 'theme-border-color white * 0.75
-	set 'theme-knob-border-color white * 0.75
-	set 'theme-knob-color white * 0.85
+	set 'theme-knob-border-color white * 0.70
+	set 'theme-knob-color white * 0.90
 	set 'theme-glass-color theme-color
 	set 'theme-glass-transparency 175
 	set 'theme-bevel-color white * 0.85
-	set 'theme-requestor-bg-color white * 0.89
+	set 'theme-requestor-bg-color theme-bg-color
 	set 'theme-progress-bg-color white
 	set 'theme-select-color theme-color + 80.80.80
 	

@@ -226,11 +226,16 @@ slim/register [
 			color: cell-clr 
 		]
 		
+		
 		either has-row-gfx? [
 			column: 1
 		][
+			; skip first column, which is used for gfx 
 			column: 2
 		]
+		
+		
+		
 		
 		if grid-brd [
 			append face/pane gbf: make base-face [
@@ -292,12 +297,18 @@ slim/register [
 			;v?? COLUMN
 
 			;----
-			; skip to column
+			; skip to current data column
 			cell: at bulk 1 + column
 			
 			;----
 			; skip to first row
 			cell: skip cell ((first-row - 1) * data-colums)
+			
+			if has-row-gfx? [
+				gfx-specs: at bulk 2
+				gfx-specs:  skip gfx-specs ((first-row - 1) * data-colums)
+				;?? gfx-spec
+			]
 			
 			;v?? cell
 			off/y: off/y - poff
@@ -307,11 +318,22 @@ slim/register [
 				;----------------------------
 				until [
 					row: row + 1
+
 					append face/pane cf: make col-face [
 						offset: off
 						size/x: spec/width
 						text: form pick cell 1 
 						text-align: 'left
+					]
+					if has-row-gfx? [
+						gfx-spec: pick gfx-specs 1
+					
+						if block? gfx-spec [
+							if i: find gfx-spec tuple! [
+								cf/color: first i
+							]
+						]
+						gfx-specs: skip gfx-specs data-colums
 					]
 					;?? col-face
 					if find chosen (row + first-row - 1) [

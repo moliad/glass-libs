@@ -132,7 +132,7 @@ slim/register [
 			; when false or none, this will dim the gui and add an input blocker OVER our frame
 			; so child collection mouse handling is deactivated.
 			;
-			; this used to be named 'DISABLE? but it proved ineffective to us a negative value
+			; this used to be named 'DISABLE? but it proved ineffective to use a negative value
 			; when linking with other controls and data.
 			enabled?: #[true]
 			

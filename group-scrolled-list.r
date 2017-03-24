@@ -241,8 +241,8 @@ slim/register [
 				vin [{!scrolled-list/group-specify()}]
 				block-count: 0
 				
-				vprobe spec
-				vprint "-----------"
+				;vprobe spec
+				;vprint "-----------"
 				parse spec [
 					any [
 						;here: set data skip (probe data ) :here
@@ -349,6 +349,23 @@ slim/register [
 								]
 							]
 							
+						)
+						
+						| set data decimal! (
+							; DOES NOT SEEM TO WORK CURRENTLY (BUG)
+							; !offset-value-bridge doesn't use values at init... needs a bit of investigation
+							; may be related to pipe channel handling.
+							len: content* group/scroller-marble/aspects/maximum
+							value: to-integer data * len
+							fill* group/scroller-marble/aspects/value value
+							fill* group/list-marble/aspects/list-index value
+						)
+						
+						| set data integer! (
+							; DOES NOT SEEM TO WORK CURRENTLY (BUG)
+							; !offset-value-bridge doesn't use values at init... needs a bit of investigation
+							; may be related to pipe channel handling.
+							fill* group/scroller-marble/aspects/value data
 						)
 						
 						| set data pair! (

@@ -73,7 +73,7 @@ slim/register [
 		dirty*: dirty
 	]
 
-	slim/open/expose 'glue none [ !empty? ]
+	slim/open/expose 'glue none [ !empty? !filled?]
 
 	
 	sillica-lib: slim/open/expose 'sillica none [
@@ -160,19 +160,15 @@ slim/register [
 ;				"Bangkok" 1212
 ;			]
 			
-			
-			
 			;-        columns:
 			; how many columns in list data?
 			;
 			; for now this is hard-set to 2, but in future versions, we will expand and allow several label columns.
 			columns: 2
 			
-			
 			;-        list-index:
 			; at what item should the display start showing list items?
 			list-index: 1
-			
 			
 			;-        chosen:
 			; this is the list of chosen items in the list.
@@ -183,7 +179,6 @@ slim/register [
 			;    
 			chosen: []
 			
-			
 			;-        leading:
 			; space between lines.
 			leading: 6
@@ -192,10 +187,13 @@ slim/register [
 		
 		;-    Material[]
 		material: make material [
+			;--------------------------
 			;-        fill-weight:
 			; we benefit from extra vertical space.
+			;--------------------------
 			fill-weight: 1x1
 			
+			;--------------------------
 			;-        visible-items:
 			;
 			; returns how many items CAN be shown in the list, not how many are currently visible.
@@ -204,14 +202,16 @@ slim/register [
 			;
 			; if length? of list is smaller than size of list-box, visible-items will shrink to it.
 			; 
+			;--------------------------
 			visible-items: none
 			
-			
+			;--------------------------
 			;-        row-count:
 			; returns the number of items in list.
+			;--------------------------
 			row-count: none
 			
-			
+			;--------------------------
 			;-        chosen-items:
 			;
 			; a version of list with only the chosen in it.
@@ -219,7 +219,6 @@ slim/register [
 			; it can be used directly as the source of another list !
 			;
 			chosen-items: none
-			
 			
 			;--------------------------
 			;-        chosen?:
@@ -230,6 +229,16 @@ slim/register [
 			;--------------------------
 			chosen?: none
 			
+			;--------------------------
+			;-        discarded?:
+			;
+			; OPPOSITE OF CHOSEN?
+			; 
+			; when NO selection is active, this turns true.
+			;
+			; should be used to toggle other plugs based on selection.
+			;--------------------------
+			discarded?: none
 		]
 		
 		
@@ -252,11 +261,9 @@ slim/register [
 		;-    list-columns:
 		list-columns: 2 ; eventually programmable
 		
-		
 		;-    scroller:
 		; stores the scroller we allocate for our own internal use.
 		scroller: none
-		
 		
 		;-    filter-mode-plug:
 		; just a simple plug which stores chosen filter mode.
@@ -264,7 +271,6 @@ slim/register [
 		;
 		; in special circumstance, though, you could require 'simple.
 		filter-mode-plug: none
-		
 		
 		;-    valve[ ]
 		valve: make valve [
@@ -275,20 +281,15 @@ slim/register [
 			; used as a label for debugging and node browsing.
 			style-name: 'list  
 			
-			
-			
-			
 			;-        item-spacing:
 			; how much space to add between items.  (not yet fully supported, some things are still hard coded to: 2)
 			item-spacing: 2
-			
 			
 			;-        glob-class:
 			; defines the glob which will be built by each marble instance.
 			;   glob-class/marble  is added automatically by setup.
 			glob-class: make !glob [
 				pos: none
-				
 				
 				valve: make valve [
 					; internal calculation vars
@@ -942,7 +943,8 @@ slim/register [
 				list/material/chosen-items: liquify* epoxy/!bulk-filter
 				list/filter-mode-plug: liquify*/fill !plug 'same
 				
-				list/material/chosen?: liquify*/link !empty? list/aspects/chosen
+				list/material/discarded?: liquify*/link !empty?  list/aspects/chosen
+				list/material/chosen?:    liquify*/link !filled? list/aspects/chosen
 
 				vout
 			]

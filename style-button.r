@@ -125,7 +125,7 @@ slim/register [
 			color: theme-knob-color
 
 			;-        border-color:
-			border-color: theme-knob-color * 0.9
+			border-color: theme-knob-border-color
 
 			;-        label-color:
 			label-color: black

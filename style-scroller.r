@@ -176,7 +176,7 @@ slim/register [
 			;
 			; the material has a plug called index, its piped with the value.
 			; the value has a purify method which rounds the index to its own range type.
-			value: 3
+			value: 0
 		]
 
 
@@ -577,7 +577,7 @@ slim/register [
 				
 				
 				ko: mtrl/knob-offset: liquify* epoxy-lib/!offset-value-bridge
-				ko/valve/fill/channel ko 0x33 'offset
+				ko/valve/fill/channel ko 0x0 'offset
 
 
 				mtrl/knob-position: liquify* epoxy-lib/!pair-add
@@ -706,6 +706,11 @@ slim/register [
 				; setup value & knob-offset BRIDGE
 				value: aspects/value
 				data: content* aspects/value
+				
+				;print "style-scroller.r"
+				;?? value
+				;?? data
+				
 				value/valve/attach/to value mtrl/knob-offset 'value
 				
 				value/valve/link/pipe-server value aspects/minimum
@@ -720,6 +725,8 @@ slim/register [
 				link* mtrl/knob-position mtrl/position 
 				link* mtrl/knob-position mtrl/knob-offset 
 				
+				;content* mtrl/knob-offset ; solves issues later on! (scrollbar would always be at tail, even if all is set to 0)
+				;?? ko
 				
 				vout
 			]

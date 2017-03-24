@@ -199,11 +199,11 @@ slim/register [
 						; fg layer
 						position dimension color corner hi-color hover?
 						[
-							line-width 0
-							fill-pen (  rtclr: either data/hover?= [data/hi-color=][data/color=] )
+							;line-width 0
 							line-width 1
-							;pen  ( either data/hover?= [rtclr * .75 ][ none ]  ) 
-							pen none
+							fill-pen ( rtclr: either data/hover?= [data/hi-color=][data/color=] )
+							pen      ( either data/hover?= [rtclr * .90 ][ none ]  ) 
+							;pen none
 							box (data/position=) (data/position= + data/dimension= - 1x1) ( data/corner=)
 							
 						]
@@ -365,7 +365,6 @@ slim/register [
 				marble
 			][
 				vin [{glass/!dragbar/setup-style()}]
-				
 				; just a quick stream handler for all marbles
 				event-lib/handle-stream/within 'dragbar-handler :dragbar-handler marble
 				vout

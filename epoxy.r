@@ -2041,7 +2041,7 @@ slim/register [
 			pipe-server-class: make !plug [
 			
 				;-         current-value:
-				current-value: 40
+				current-value: 0
 				
 			
 			
