@@ -1151,7 +1151,7 @@ slim/register [
 				;------------------------
 				; do we need to know the current row for this event?
 				;------------------------
-				either find [ SELECT SWIPE HOVER ] event/action [
+				either find [ SELECT SWIPE HOVER CONTEXT-PRESS ] event/action [
 					bulk: 		content aspct/data
 					dimension:	content mtrl/dimension
 					origin: 	content mtrl/origin
@@ -1311,6 +1311,17 @@ slim/register [
 					release [
 						fill* grid/aspects/selected? false
 					]
+
+					;--------------------------------------------------------
+					; CONTEXT-PRESS
+					;--------------------------------------------------------
+					; right click (contextual menu?)
+					CONTEXT-PRESS [
+						event: make event [
+							selected-row: current-row
+							row-data: get-bulk-row bulk current-row
+						]
+					]
 					
 					;--------------------------------------------------------
 					; DROP
@@ -1404,7 +1415,12 @@ slim/register [
 				; totally configurable end-user event handling.
 				; not all actions are implemented in the actions, but this allows the user to 
 				; add his own events AND his own actions and still work within the API.
-				do-event event
+				if event [
+					;print "EVENT"
+					;probe words-of event
+					do-event event
+				]
+;				do-event event
 				
 				vout
 				none
