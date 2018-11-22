@@ -2113,13 +2113,13 @@ slim/register [
 									all [
 										vertical?
 										any [
-											all [ integer? val-range round/floor (val-range * off/y / space + min-val)]
-											all [ (val-range * off/y / space + min-val)]
+											all [ integer? val-range round/floor (val-range / space * off/y + min-val)]
+											all [ (val-range / space * off/y + min-val)]
 										]
 									]
 									any [
-										all [ integer? val-range round/floor (val-range * off/x / space + min-val)]
-										all [ (val-range * off/x / space + min-val)]
+										all [ integer? val-range round/floor (val-range / space * off/x + min-val)]
+										all [ (val-range / space * off/x + min-val)]
 									]
 								]
 							]
