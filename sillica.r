@@ -108,8 +108,8 @@ slim/register [
 	liquid-lib: slim/open/expose 'liquid none [!plug [liquify* liquify ] [content* content] [fill* fill] [link* link] [unlink* unlink]]
 
 	slim/open/expose 'bulk none [
-		is-bulk? symmetric-bulks? get-bulk-property get-bulk-label-column get-bulk-labels-index 
-		set-bulk-property set-bulk-properties bulk-find-same search-bulk-column filter-bulk 
+		is-bulk? symmetric-bulks? get-bulk-property column-idx label-column-idx 
+		set-bulk-property set-bulk-properties  bulk-find-same: find-same  search-bulk-column filter-bulk 
 		get-bulk-row bulk-columns bulk-rows copy-bulk sort-bulk insert-bulk-records add-bulk-records 
 		make-bulk clear-bulk 
 	]
@@ -1727,7 +1727,7 @@ position: pos-mem
 			]
 			
 		]
-		v?? blk
+		;v?? blk
 		vout
 		blk
 	]

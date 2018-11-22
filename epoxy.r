@@ -83,8 +83,8 @@ slim/register [
 	sillica-lib: slim/open 'sillica none
 	slim/open/expose 'utils-series  none [ text-to-lines ]
 	slim/open/expose 'bulk none [
-		is-bulk? symmetric-bulks? get-bulk-property get-bulk-label-column get-bulk-labels-index 
-		set-bulk-property set-bulk-properties bulk-find-same search-bulk-column filter-bulk 
+		is-bulk? symmetric-bulks? get-bulk-property   
+		set-bulk-property set-bulk-properties  search-bulk-column filter-bulk 
 		get-bulk-row bulk-columns bulk-rows copy-bulk sort-bulk insert-bulk-records add-bulk-records 
 		make-bulk clear-bulk 
 	]

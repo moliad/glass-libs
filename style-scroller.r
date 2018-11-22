@@ -377,7 +377,7 @@ slim/register [
 				/local scroller kpos ksize kend action val
 			][
 				vin [{HANDLE SCROLLER}]
-				vprint event/action
+				;vprint event/action
 				scroller: event/marble
 				
 				;vprint event/offset
