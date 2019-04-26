@@ -110,7 +110,8 @@ slim/register [
 	slim/open/expose 'bulk none [
 		is-bulk? symmetric-bulks? get-bulk-property column-idx label-column-idx 
 		set-bulk-property set-bulk-properties  bulk-find-same: find-same  search-bulk-column filter-bulk 
-		get-bulk-row bulk-columns bulk-rows copy-bulk sort-bulk insert-bulk-records add-bulk-records 
+		get-bulk-row bulk-columns bulk-rows copy-bulk sort-bulk insert-bulk-records 
+		;append-bulk-records 
 		make-bulk clear-bulk 
 	]
 

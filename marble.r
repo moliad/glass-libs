@@ -294,7 +294,7 @@ slim/register [
 			;-       label-color:
 			label-color: black
 			
-			;-        border-color:
+			;-       border-color:
 			; marbles don't have a border by default
 			border-color: none
 			
@@ -1017,9 +1017,9 @@ slim/register [
 			;
 			; eventually, a theme/skin engine will hookup within the materialization process somehow.
 			;-----------------
-			gl-materialize: func [
+			gl-materialize: funcl [
 				marble [object!]
-				/local mtrl
+				;/local mtrl
 			][
 				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/gl-materialize()}]
 				; manage relative positioning
@@ -1039,7 +1039,16 @@ slim/register [
 					;probe "AUTO-SIZING!!!"
 					mtrl/min-dimension: liquify* epoxy-lib/!label-min-size
 				][
-					mtrl/min-dimension: liquify*/fill !plug mtrl/min-dimension
+					;---------
+					; add padding!
+					; <MOA> 2019-01-13
+					;---------
+					mtrl/min-dimension: liquify*/fill epoxy-lib/!pair-add mtrl/min-dimension
+					mtrl/min-dimension/resolve-links?: 'LINK-AFTER
+					;link mtrl/min-dimension marble/aspects/padding
+					;mtrl/min-dimension/
+					;---------
+					; mtrl/min-dimension: liquify*/fill !plug mtrl/min-dimension  ; old code
 				]
 				mtrl/fill-weight: liquify*/fill !plug mtrl/fill-weight
 				mtrl/fill-accumulation: liquify*/fill !plug mtrl/fill-accumulation
@@ -1099,35 +1108,70 @@ slim/register [
 			; marbles should never call gl-fasten() directly !!
 			;
 			;-----------------
-			gl-fasten: func [
+			gl-fasten: funcl [
 				marble
 			][
 				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/gl-fasten()}]
+				
+				mtrl: marble/material
 				
 				; the automatic label resizing is optional in marbles.
 				;
 				; current acceptible values are ['automatic | 'disabled]
 				
+				; mutate based on existance of 'label-auto-resize-aspect in marble.
 				either 'automatic = get in marble 'label-auto-resize-aspect [
-					; mutate based on existance of 'label-auto-resize-aspect in marble.
-					marble/material/min-dimension/valve: epoxy-lib/!label-min-size/valve
+					mtrl/min-dimension/valve: epoxy-lib/!label-min-size/valve
 					
-					link*/reset/exclusive marble/material/min-dimension marble/aspects/size
-					link* marble/material/min-dimension marble/aspects/label
-					link* marble/material/min-dimension marble/aspects/font
-					link* marble/material/min-dimension marble/aspects/padding
+					link*/reset/exclusive mtrl/min-dimension marble/aspects/size
+					link* mtrl/min-dimension marble/aspects/label
+					link* mtrl/min-dimension marble/aspects/font
+					link* mtrl/min-dimension marble/aspects/padding
 				][
-					; mutate based on existance of 'label-auto-resize-aspect in marble.
-					marble/material/min-dimension/valve: !plug/valve
-					
-					if in marble/aspects 'size [
-						link*/reset  marble/material/dimension marble/aspects/size
+					mtrl/min-dimension/valve: epoxy-lib/!pair-add/valve
+					;print "---"
+					;---------
+					; add padding!
+					; <MOA> 2019-01-13
+					;---------
+;					if in marble/aspects 'label [
+;						lbl: content marble/aspects/label
+;						?? lbl
+;					]
+;					mud: mtrl/min-dimension/mud
+;					?? mud
+;					pipe?: mtrl/min-dimension/pipe?
+;					?? pipe?
+					if in marble/aspects 'padding [
+						link*/reset mtrl/min-dimension marble/aspects/padding
+						
+;						pad: content marble/aspects/padding
+;						?? pad
 					]
-					;link/reset  marble/material/min-dimension marble/aspects/size
+;					mud: mtrl/min-dimension/mud
+;					?? mud
+					
+;					pipe?: mtrl/min-dimension/pipe?
+;					?? pipe?
+					
+;					resolve?: mtrl/min-dimension/resolve-links?
+;					?? resolve?
+					
+;					min-size: content mtrl/min-dimension 
+;					?? min-size
+					
+					;---
+					;  this is a STATIC overide (dimension of widget is not size by parent).
+					; may be problematic when used within auto-sizing groups.
+					;if in marble/aspects 'size [
+					;	link*/reset  mtrl/dimension marble/aspects/size
+					;]
+					;link/reset  mtrl/min-dimension marble/aspects/size
+					
 				]
 				
 				
-				;probe content marble/material/min-dimension
+				;probe content mtrl/min-dimension
 				
 				; perform any style-related fastening.
 				marble/valve/fasten marble
@@ -1233,6 +1277,7 @@ slim/register [
 				pair-count: 0
 				tuple-count: 0
 				blk-count: 0
+				mtrl: marble/material
 				local-dialect: [end skip]
 				if in marble/valve 'dialect-rules [
 					local-dialect: bind/copy (get in marble/valve 'dialect-rules) 'blk-count
@@ -1252,19 +1297,19 @@ slim/register [
 						) 
 						
 						| 'stiff (
-							fill* marble/material/fill-weight 0x0
+							fill* mtrl/fill-weight 0x0
 						) 
 						
 						| 'stiff-x (
-							fill* marble/material/fill-weight 0x1
+							fill* mtrl/fill-weight 0x1
 						) 
 						
 						| 'stiff-y (
-							fill* marble/material/fill-weight 1x0
+							fill* mtrl/fill-weight 1x0
 						) 
 						
 						| 'stretch set data pair! (
-							fill* marble/material/fill-weight data
+							fill* mtrl/fill-weight data
 						) 
 						
 						| 'left (
@@ -1306,8 +1351,11 @@ slim/register [
 						;
 						; the net result is that he and we will be using OUR pipe server
 						;-----
-						| 'attach set client [object! | word!] (
-							if word? client [client: get client]
+						| 'attach set client [object! | word! | path!] (
+							case [
+								word? client [client: get client]
+								path? client [client: do client]
+							]
 							if liquid-lib/plug? client [
 								aspect: marble/valve/get-default-aspect marble
 								
@@ -1328,8 +1376,11 @@ slim/register [
 						;
 						; the net result is that he and we will be using ITS pipe server
 						;-----
-						| 'attach-to set pipe [object! | word!] (
-							if word? pipe [pipe: get pipe]
+						| 'attach-to set pipe [object! | word! | path!] (
+							case [
+								word? pipe [pipe: get pipe]
+								path? pipe [pipe: do pipe]
+							]
 							
 							if liquid-lib/plug? :pipe [
 								aspect: marble/valve/get-default-aspect marble
@@ -1379,7 +1430,7 @@ slim/register [
 						| set data pair! (
 							pair-count: pair-count + 1
 							switch pair-count [
-								1 [	fill* marble/material/min-dimension data ] 
+								1 [	fill* mtrl/min-dimension data ] 
 								2 [	fill* marble/aspects/offset data ]
 							]
 						) 
@@ -1405,8 +1456,8 @@ slim/register [
 						) 
 						
 						| set data [integer!] (
-							val: content* marble/material/min-dimension
-							fill* marble/material/min-dimension (val * 0x1) + (data * 1x0)
+							val: content* mtrl/min-dimension
+							fill* mtrl/min-dimension (val * 0x1) + (data * 1x0)
 						) 
 						
 						| skip 

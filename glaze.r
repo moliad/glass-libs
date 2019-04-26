@@ -481,7 +481,7 @@ slim/register [
 	;- SEPARATORS
 	;-     shadows
 	shadow-separator: sl/collect-style/as make marble/!marble [
-		aspects: make aspects [label: none]
+		aspects: make aspects [label: none padding: 0x0]
 		material: make material [fill-weight: 0x0 min-dimension: 3x3 ]
 
 
@@ -496,7 +496,7 @@ slim/register [
 
 
 			;-----------------
-			;-               dialect()
+			;-           dialect()
 			;-----------------
 			dialect: func [
 				marble [object!]

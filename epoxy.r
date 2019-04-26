@@ -85,7 +85,8 @@ slim/register [
 	slim/open/expose 'bulk none [
 		is-bulk? symmetric-bulks? get-bulk-property   
 		set-bulk-property set-bulk-properties  search-bulk-column filter-bulk 
-		get-bulk-row bulk-columns bulk-rows copy-bulk sort-bulk insert-bulk-records add-bulk-records 
+		get-bulk-row bulk-columns bulk-rows copy-bulk sort-bulk insert-bulk-records 
+		;append-bulk-records 
 		make-bulk clear-bulk 
 	]
 		
@@ -246,7 +247,9 @@ slim/register [
 	]
 	
 
+	;-----------------
 	;-     !pair-op[]
+	;-----------------
 	!pair-op: make !junction [
 		valve: make valve [
 			type: '!pair-op
@@ -268,9 +271,9 @@ slim/register [
 				/local item
 			][
 				;vin [{epoxy/} uppercase to-string plug/valve/type {[}plug/sid{]/process()}]
-				;data
 				plug/liquid: direction * any [pick data 1 0]
 				;print [ "--------" uppercase to-string plug/valve/type "-------->" ]
+				;probe data
 				;print plug/liquid
 				
 				;if plug/valve/type = '!pair-max [probe data]
@@ -285,7 +288,7 @@ slim/register [
 	]
 	
 	;-     !pair-add:
-	!pair-add: make !pair-op [valve: make valve [type: '!pair-add]]
+	!pair-add: make !pair-op [valve: make valve [type: '!pair-add]] ; note 'ADD is default 'OPERATION, so we don't need to specify it.
 	
 	;-     !pair-mult:
 	!pair-mult: make !pair-op [valve: make valve [type: '!pair-mult operation: :multiply]]
@@ -1703,7 +1706,7 @@ slim/register [
 
 
 	;-----------------
-	;-        !place-at-edge: []
+	;-     !place-at-edge: []
 	;
 	; this is a purpose-built positioner for scrollers
 	;
@@ -1738,7 +1741,7 @@ slim/register [
 	]
 	
 	;-----------------
-	;-        !dimension-at-edge: []
+	;-     !dimension-at-edge: []
 	;
 	; this is a purpose-built positioner for scrollers
 	;
@@ -1877,7 +1880,7 @@ slim/register [
 	
 	
 	
-	;-         range-clip:
+	;-     range-clip: []
 	; a plug which expects to be piped and uses linked inputs as the range and type
 	; of value to share.
 	range-clip: make !plug [
@@ -2176,7 +2179,7 @@ slim/register [
 						; remember the value so we can use it for unchanneled processes.
 						plug/current-value: val
 						
-						plug/liquid: compose/deep [ 
+						plug/liquid: compose/deep [
 							value [(val)] 
 							offset [(off)] 
 							ratio [(ratio)] 

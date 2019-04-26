@@ -513,7 +513,6 @@ slim/register [
 				;/local data pair-count tuple-count tmp
 			][
 				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/specify()}]
-				
 				pair-count: 0
 				tuple-count: 0
 				blk-count: 0
@@ -558,7 +557,10 @@ slim/register [
 						; the net result is that he and we will be using OUR pipe server
 						;-----
 						| 'attach set client [object! | word!] (
-							if word? client [client: get client]
+							case [
+								word? client [client: get client]
+								path? client [client: do client]
+							]
 							if liquid-lib/plug? client [
 								aspect: marble/valve/get-default-aspect marble
 								
@@ -579,9 +581,11 @@ slim/register [
 						;
 						; the net result is that he and we will be using ITS pipe server
 						;-----
-						| 'attach-to set pipe [object! | word!] (
-							if word? pipe [pipe: get pipe]
-							
+						| 'attach-to set pipe [object! | word! | path!] (
+							case [
+								word? pipe [pipe: get pipe]
+								path? pipe [pipe: do pipe]
+							]
 							if liquid-lib/plug? pipe [
 								aspect: marble/valve/get-default-aspect marble
 
@@ -592,6 +596,21 @@ slim/register [
 								
 							]
 						)
+						
+						| 'font set data [word! | block! | object!] (
+							;print "FONT SPEC!"
+							ref-font: content marble/aspects/font
+							switch type?/word data [
+								block! [
+									fill marble/aspects/font make ref-font data
+								]
+								word! [
+									data: get data 
+									fill marble/aspects/font make ref-font data
+								]
+							]
+						)
+						
 						
 						| set data integer! (
 							sz: content* marble/material/min-dimension

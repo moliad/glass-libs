@@ -58,7 +58,6 @@ REBOL [
 ; test-enter-slim 'style-icon-button
 ;
 ;--------------------------------------
-
 slim/register [
 	;- LIBS
 	glob-lib: slim/open/expose 'glob none [!glob to-color]

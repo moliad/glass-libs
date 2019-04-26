@@ -312,9 +312,8 @@ slim/register [
 	;-----------------
 	;-     hide-request()
 	;-----------------
-	hide-request: func [
+	hide-request: funcl [
 		req [object! none!]
-		/local viewport
 	][
 		vin [{glass/hide-request()}]
 		
@@ -342,12 +341,13 @@ slim/register [
 	;-----------------
 	;-     request-string()
 	;-----------------
-	request-string: func [
+	request-string: funcl [
 		title [string!]
 		/message msg
-		/local fld rval
+		/default def-value [string!] "Fill the field with a default value."
 	][
 		vin [{request-string()}]
+		def-value: copy any [def-value ""]
 		request/modal title none compose/deep [
 			(
 				either msg [
@@ -360,13 +360,14 @@ slim/register [
 			)
 
 			column 20x10 [
-				fld: field 200x23
+				fld: field 200x23 (def-value)
 			]
 			row [
 				hstretch
 				button 75x23 stiff "Ok" [rval: content* fld/aspects/label hide-request none resume]
 				button 75x23 stiff "Cancel" [hide-request none resume ]
 			]
+			do [print "HAHA"]
 		]
 		vout
 		rval
