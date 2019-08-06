@@ -1392,10 +1392,27 @@ slim/register [
 								
 							]
 						)
+						
+						
 						;-----
-						; attach ourself to another plug (keeping its data, if any).
-						;
-						; the net result is that he and we will be using ITS pipe server
+						; link ourself to another plug (using its data).
+						;-----
+						| 'link-to set plug [object! | word! | path!] (
+							case [
+								word? plug [plug: get plug]
+								path? plug [plug: do plug]
+							]
+							
+							if liquid-lib/plug? :plug [
+								aspect: marble/valve/get-default-aspect marble
+
+								link/reset aspect plug
+							]
+						)
+						
+						
+						;-----
+						; link ourself to another glass marble (keeping its data, if any).
 						;-----
 						| 'connect-to set other-marble [object! | word!] (
 							if word? other-marble [other-marble: get other-marble]
