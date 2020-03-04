@@ -550,6 +550,9 @@ slim/register [
 							marble: make marble [label-auto-resize-aspect: 'automatic]
 						)
 						
+						| 'corner set data [integer!] (
+							fill* marble/aspects/corner data
+						)
 						
 						;-----
 						; attach a plug to ourself (keeping our value, if any).

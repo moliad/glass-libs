@@ -119,12 +119,12 @@ slim/register [
 		;-    Aspects[ ]
 		aspects: make aspects [
 			;-        size:
-			size: 200x200
+			size: 10x10
 			
 			
 			;-        image:
 			; contains the image to show.
-			image: draw 300x300 compose [
+			image: draw 100x100 compose [
 				fill-pen (gold * .8) box 0x0 300x300 fill-pen red line-pattern 5 5 pen white black circle 49x49 30
 			]
 			
@@ -309,35 +309,50 @@ slim/register [
 			][
 				vin [{dialect()}]
 				color-count: 1
+				mtrl: marble/material
+				aspects: marble/aspects
 				
 				;print "!"
 				
 				parse spec [
 					any [
 						set data image! (
-							fill* marble/aspects/image data
+							fill* aspects/image data
 						)
 						
 						| set data tuple! (
 							switch color-count [
-								1 [fill* marble/aspects/label-color data]
-								2 [fill* marble/aspects/label-shadow-color data]
-								3 [fill* marble/aspects/border-style data]
+								1 [fill* aspects/label-color data]
+								2 [fill* aspects/label-shadow-color data]
+								3 [fill* aspects/border-style data]
 							]
 							color-count: color-count + 1
 						)
 						
 						| 'no-shadow (
-							fill* marble/aspects/label-shadow-color none
+							fill* aspects/label-shadow-color none
 						)
 						
 						; removes all styling and label
 						| 'plain (
-							fill* marble/aspects/label-color none
-							fill* marble/aspects/label-shadow-color none
-							fill* marble/aspects/border-size 0
-							fill* marble/aspects/border-style none
+							fill* aspects/label-color none
+							fill* aspects/label-shadow-color none
+							fill* aspects/border-size 0
+							fill* aspects/border-style none
 						)
+
+						
+						| 'stiff (
+							fill* mtrl/fill-weight 0x0
+						) 
+						
+						| 'stiff-x (
+							fill* mtrl/fill-weight 0x1
+						) 
+						
+						| 'stiff-y (
+							fill* mtrl/fill-weight 1x0
+						) 
 						
 						; we attempt to link to marbles automatically!!!
 						| set data object! (
@@ -345,12 +360,18 @@ slim/register [
 								in data 'valve 
 								image? content* data
 							][
-								link*/reset marble/aspects/image data
+								link*/reset aspects/image data
 							]
 						)
 						
 						| set data integer! (
-							fill* marble/aspects/corner data
+							fill* aspects/corner data
+						)
+						
+						| set data pair! (
+							;print "FOUND IMAGE SIZE"
+							;fill* aspects/size data
+							fill* mtrl/min-dimension data
 						)
 						
 						| skip
