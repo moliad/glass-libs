@@ -676,7 +676,7 @@ slim/register [
 				droplist
 				/local mtrl aspects
 			][
-				vin [{fasten()}]
+				vin [{droplist/fasten()}]
 				mtrl: droplist/material
 				aspects: droplist/aspects
 				

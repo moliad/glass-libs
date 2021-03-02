@@ -220,7 +220,7 @@ slim/register [
 	epoxy-lib: slim/open/expose 'epoxy none [!box-intersection]
 	
 	event-lib: slim/open 'event none
-	slim/open/expose 'utils-series none [ include ]
+	slim/open/expose 'utils-series none [ include comply ]
 
 	
 
@@ -309,6 +309,11 @@ slim/register [
 			
 			;-       hover?:
 			hover?: none
+			
+			;-       active?:
+			;
+			; if active? is false we don't get ANY mouse-related events.
+			active?: true
 			
 			;-       padding:
 			padding: 3x2
@@ -589,6 +594,7 @@ slim/register [
 						align !word
 						corner !integer
 						padding !pair
+						active? !any
 					]
 					
 					;-            glob/gel-spec:
@@ -596,12 +602,16 @@ slim/register [
 					; these are bound and composed relative to the input being sent to glob at process-time.
 					gel-spec: [
 						; event backplane
-						position dimension 
+						position dimension active?
 						[
-							line-width 1 
-							pen none 
-							fill-pen (to-color gel/glob/marble/sid) 
-							box (data/position=) (data/position= + data/dimension= - 1x1)
+							;line-width 1 
+							(
+								comply/only data/active?= [
+									pen none 
+									fill-pen (to-color gel/glob/marble/sid) 
+									box (data/position=) (data/position= + data/dimension= - 1x1)
+								]
+							)
 						]
 
 						; bg layer (ex: shadows, textures)
@@ -784,7 +794,7 @@ slim/register [
 			
 			
 			;--------------------------
-			;-      get-default-aspect()
+			;-        get-default-aspect()
 			;--------------------------
 			; purpose:  all marbles have one aspect which is considered the default one, usually used for their main data value.
 			;
@@ -841,7 +851,7 @@ slim/register [
 				marble
 				/local simple-aspects item
 			][
-				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/setup()}]
+				vin [{marble/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/setup()}]
 				; make an instance-specific property containers
 				marble/aspects: make marble/aspects []
 				marble/material: make marble/material []
@@ -877,25 +887,44 @@ slim/register [
 				marble/valve/materialize marble
 
 
+				if in marble 'collection [
+					marble/collection: copy []
+				]
+
 				; allocate our glob(s)
-				either marble/valve/is-frame? [
+				either any [
+					marble/valve/is-frame? 
+					in marble 'link-gel-to-glob
+				][
 				
 					; this is only used as a stack.
 					marble/glob: liquify* !glob
-					marble/collection: copy []
 					
-					; if the frame has any visuals, create and link them.
-					if marble/valve/bg-glob-class [
+					if all [
+						in marble/valve 'bg-glob-class
+						marble/valve/bg-glob-class
+					][
+						; if the frame has any visuals, create and link them.
 						marble/frame-bg-glob: liquify*/with marble/valve/bg-glob-class compose [marble: (marble)]
 						marble/valve/link-glob-input/using marble marble/frame-bg-glob
 						marble/glob/valve/link marble/glob marble/frame-bg-glob
 					]
-								
-					if marble/valve/fg-glob-class [
-						
+
+					if all [
+						in marble 'link-gel-to-glob 
+						marble/valve/glob-class
+					][
+						marble/link-gel-to-glob: liquify*/with any [marble/valve/glob-class !glob] compose [marble: (marble)]
+						marble/valve/link-glob-input/using marble marble/link-gel-to-glob
+						marble/glob/valve/link marble/glob marble/link-gel-to-glob
+					]
+							
+					if all [
+						in marble/valve 'fg-glob-class
+						marble/valve/fg-glob-class
+					][
 						marble/frame-fg-glob: liquify*/with marble/valve/fg-glob-class compose [marble: (marble)]
 						marble/valve/link-glob-input/using marble marble/frame-fg-glob
-						
 						; the fg glob will be unlinked and relinked everytime new marbles are collected
 						marble/glob/valve/link marble/glob marble/frame-fg-glob
 					]
@@ -923,7 +952,7 @@ slim/register [
 			test-handler: func [
 				event [object!]
 			][
-				vin [{HANDLE MARBLE}]
+				;vin [{HANDLE MARBLE}]
 				
 				;print event/action
 				switch event/action [
@@ -937,7 +966,7 @@ slim/register [
 				]
 				do-event event
 				
-				vout
+				;vout
 				none
 			]
 			
@@ -959,7 +988,7 @@ slim/register [
 			setup-style: func [
 				marble
 			][
-				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/stylize()}]
+				vin [{marble/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/stylize()}]
 				
 				; just a quick stream handler for all marbles
 				event-lib/handle-stream/within 'test-handler :test-handler marble
@@ -1021,7 +1050,7 @@ slim/register [
 				marble [object!]
 				;/local mtrl
 			][
-				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/gl-materialize()}]
+				vin [{marble/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/gl-materialize()}]
 				; manage relative positioning
 				;if relative-marble? marble [
 					; ! junction is a default, but it may change via frame-managed mutation.
@@ -1111,7 +1140,7 @@ slim/register [
 			gl-fasten: funcl [
 				marble
 			][
-				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/gl-fasten()}]
+				vin [{marble/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/gl-fasten()}]
 				
 				mtrl: marble/material
 				
@@ -1220,7 +1249,7 @@ slim/register [
 				/wrapper
 				;/local mbl
 			][
-				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/gl-specify()}]
+				vin [{marble/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/gl-specify()}]
 				
 				if wrapper [
 					include marble/options 'wrapper
@@ -1272,19 +1301,32 @@ slim/register [
 				stylesheet [block!] "Required so stylesheet propagates in marbles we create"
 				;/local data pair-count tuple-count tmp
 			][
-				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/specify()}]
+				vin [{marble/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/specify()}]
 				other-marble: none
 				pair-count: 0
 				tuple-count: 0
 				blk-count: 0
 				mtrl: marble/material
-				local-dialect: [end skip]
-				if in marble/valve 'dialect-rules [
-					local-dialect: bind/copy (get in marble/valve 'dialect-rules) 'blk-count
+				aspects: marble/aspects
+				valve: marble/valve
+				
+				unless local-dialect: select valve 'dialect-rules-cache [
+					if local-dialect: select valve 'dialect-rules [
+						;----------------
+						; we bind the rules to this function.
+						;
+						; from now on they can use any of the above words locally
+						;----------------
+						local-dialect: bind/copy local-dialect 'blk-count 
+					
+						if in valve 'dialect-rules-cache [
+							valve/dialect-rules-cache: local-dialect
+						]
+					]
 				]
+				local-dialect: any [local-dialect [end skip] ]
+				
 				parse spec [
-				
-				
 					any [
 						local-dialect
 						
@@ -1292,8 +1334,8 @@ slim/register [
 							;print "SPECIFIED A WITH BLOCK"
 							;marble: make marble data/2
 							;liquid-lib/reindex-plug marble
+							;v?? data
 							do bind/copy data/2 marble 
-							
 						) 
 						
 						| 'stiff (
@@ -1327,6 +1369,10 @@ slim/register [
 						| 'auto-size (
 							marble: make marble [label-auto-resize-aspect: 'automatic]
 							;marble/
+						)
+						
+						| 'inactive (
+							fill* marble/aspects/active? false
 						)
 						
 						| 'bold (
@@ -1530,7 +1576,7 @@ slim/register [
 			isolate: func [
 				marble
 			][
-				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/isolate()}]
+				vin [{marble/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/isolate()}]
 				if object? marble/frame [
 					marble/frame/valve/detach marble/frame marble
 				]
@@ -1549,7 +1595,7 @@ slim/register [
 			process: func [
 				marble data
 			][
-				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/process()}]
+				vin [{marble/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/process()}]
 				marble/liquid: marble
 				vout
 			]

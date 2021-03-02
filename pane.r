@@ -171,7 +171,7 @@ slim/register [
 		;
 		; the other frame does all the layout, and we simply use its results and render them.
 		; 
-		; it is set to none at the mome, but it will later be filled with the frame in which 
+		; it is set to none at the moment, but it will later be filled with the frame in which 
 		; we collect the layout.
 		; 
 		; any call to collect(), using the normal api, will put the marbles in this subframe rather than
@@ -189,9 +189,6 @@ slim/register [
 		;
 		; the node which renders the pane's back-plane as an image.
 		;pixel-map: none
-		
-		
-		
 		
 		
 		
@@ -313,8 +310,6 @@ slim/register [
 					pane/aspects/h-offset
 					pane/aspects/v-offset
 				]
-				
-				
 
 				vout
 			]
@@ -337,7 +332,7 @@ slim/register [
 					] stylesheet
 					
 					
-					vprobe pane/collect-in-frame/sid
+					v?? pane/collect-in-frame/sid
 					
 					pane/collect-in-frame/material: make pane/collect-in-frame/material [
 						translation: liquify*/link !plug pane/material/position

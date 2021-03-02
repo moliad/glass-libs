@@ -227,6 +227,22 @@ slim/register [
 		layout-method: 'column
 		
 		
+		;--------------------------
+		;-         title?:
+		;
+		; do we show a window title?
+		;--------------------------
+		title?: true
+		
+		
+		;--------------------------
+		;-         resize?:
+		;
+		;--------------------------
+		resize?: true
+		
+		
+		
 		;-    view-face:
 		; stores the face which is added to screen face
 		view-face: none
@@ -397,7 +413,13 @@ slim/register [
 				]
 				view-face/offset: content* aspects/offset
 				view-face/rate: 1 ; forces timer events in wake-event
-				view-face/options: [resize]
+				view-face/options: copy []
+				if resize? [
+					append view-face/options 'resize
+				]
+				unless title? [
+					append view-face/options 'no-title
+				]
 				show screen
 			]
 			vout
@@ -560,7 +582,9 @@ slim/register [
 						; fg layer
 						color dimension
 						[
-							pen none
+						
+							
+							pen (data/color=)
 							fill-pen (data/color=)
 							box 0x0 (data/dimension= )
 						]
@@ -620,7 +644,7 @@ slim/register [
 					;window/backplane: none
 					
 					
-					;-           render backplane
+					;-           - render backplane
 					if block? blk: content* window/backplug [
 						;vprint "...................> Redraw-backplane"
 						draw  window/backplane compose [ pen none anti-alias (none) fill-pen (white) box 0x0 (size) (blk) ]
@@ -852,19 +876,20 @@ slim/register [
 				
 					; add viewport handlers!
 					vprint "adding refresh handler"
-					event-lib/handle-stream/within 'window-handler 
+					event-lib/handle-stream/within 'window-handler
 						;-             window event handler
 						; note, if we return an event, we intend for the streaming to continue
 						; returning none or false will consume the event and this event is considered
 						; completely managed.
 						;
 						; as usual, we may modify or even allocate a new event, and even queue new ones!
-						func [
+						funcl [
 							event [object!]
-							/local window marble qevent  wglob oglob  data img size
+							;/local window marble qevent  wglob oglob  data img size
+							/extern selected-marble  drag-down-event   ctx-selected-marble  dragged-marble  hovered-marble
 						][
 							vin "WINDOW HANDLER"
-							vprint event/action
+							;vprint event/action
 							
 							window: event/viewport
 							
@@ -878,7 +903,7 @@ slim/register [
 									
 									
 									either selected-marble [
-										vprint "dragging"
+										;vprint "dragging"
 										;print "SWIPE?"
 										; enter swipe mode
 										
@@ -908,7 +933,7 @@ slim/register [
 											event/action: 'DROP?
 										]
 									][
-										vprint "hovering"
+										;vprint "hovering"
 										
 										; enter hover mode
 										either all [
@@ -989,8 +1014,11 @@ slim/register [
 								; until the end is reached.  :-)
 								;
 								SCROLL-LINE [
-									;vprint "SCROLL-LINE"
-									;vprobe event/coordinates
+;									vprint "SCROLL-LINE"
+;									vprobe event/coordinates
+;									vprobe words-of event
+;									vprobe event/offset
+;									vprobe event/amount
 									if marble: detect-marble window event/coordinates [
 									;	vprint "MARBLE UNDER CURSOR"
 										event/marble: marble
@@ -1011,15 +1039,28 @@ slim/register [
 									vprint "------------------->Refresh!"
 									;ask "!!"
 									wglob: oglob: none
+									clip-regions: window/clip-regions
+									;probe content* window/glob 
+
+	
+									
 									case [
+										
+										;?? clip-regions
+									
+										;----------------------
+										; simple, quick, draw whole window.
 										all [
 											window/last-draw-clipped?
 											empty? clip-regions
 										][
+											vprint "refresh whole windows!"
 											draw window/raster content* window/glob
 											window/last-draw-clipped?: false
 										]
-											
+										
+										;-----------------------
+										; draw clipped or support more complex situations
 										any [
 											window/glob/dirty?
 											all [
@@ -1028,14 +1069,12 @@ slim/register [
 											]
 											
 										][
+
 											if sl/debug-mode? > 0 [
 												prin ">"
+												;vprint "window glob is dirty"
 											]
-											; get new draw block(s) from our glob(s).
-											if window/glob/dirty?  [
-												vprint "window glob is dirty"
-											]
-											clear wglob
+											;clear wglob
 											
 											wglob: content* window/glob
 											oglob: all [
@@ -1057,14 +1096,13 @@ slim/register [
 												]
 												none? img
 											][
-												vprint  "making new raster to draw on"
+												;vprint  "making new raster to draw on"
+												
 												; 2x2 is only there to prevent transient liquid linking issues
 												; where the dimension is temporarily none
 												window/raster: img: make image! any [content* window/material/dimension 2x2]
 											
 											]
-											
-											
 											
 											window/view-face/image: img
 											
@@ -1164,6 +1202,7 @@ slim/register [
 									; pointer release occurs.
 									;---
 									if selected-marble [
+										event/offset: coordinates-to-offset selected-marble event/coordinates
 										dispatch clone-event/with event [
 											action: 'PRE-RELEASE 
 											marble: selected-marble
@@ -1176,10 +1215,10 @@ slim/register [
 										if in marble/aspects 'label [
 											vprobe content marble/aspects/label
 										]
-										vprobe content marble/material/position
-										vprobe content marble/material/dimension
-										vprobe content window/material/dimension
-										vprobe same? window marble
+										;vprobe content marble/material/position
+										;vprobe content marble/material/dimension
+										;vprobe content window/material/dimension
+										;vprobe same? window marble
 									][
 										vprint "NO MARBLE"
 									]
@@ -1192,7 +1231,6 @@ slim/register [
 										vprint "marble is not a window"
 										;---------
 										; pointer was released from a marble selection
-										event/offset: coordinates-to-offset selected-marble event/coordinates
 										event/marble: selected-marble
 										either marble <> selected-marble [
 											vprint "marble isn't the selected marble"
@@ -1583,7 +1621,7 @@ slim/register [
 			fasten: func [
 				window
 			][
-				vin [{fasten()}]
+				vin [{window/fasten()}]
 				; our offset is a reflection of the actual window's screen position
 				; so our position should not be related to it in any way
 				unlink*/only window/material/position window/aspects/offset

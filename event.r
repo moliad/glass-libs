@@ -117,7 +117,7 @@ slim/register [
 
 	;-     last-move-position
 	; remember last move coordinates so we can trigger it on time events.
-	last-move-position: none
+	last-move-position: 0x0
 	
 	
 	;-     last-down-event

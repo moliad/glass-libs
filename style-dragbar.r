@@ -388,7 +388,7 @@ slim/register [
 			fasten: funcl [
 				bar
 			][
-				vin "fasten()"
+				vin "dragbar/fasten()"
 				frame: bar/frame
 				
 				;vprobe type? frame

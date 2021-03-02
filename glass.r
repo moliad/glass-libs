@@ -127,7 +127,7 @@ slim/register [
 		aspect [word!]
 		value 
 	][
-		vin [{glass/set-aspect()}]
+		vin [{glass.r/set-aspect()}]
 		value: marble/valve/set-aspect marble aspect value
 		vout
 		value
@@ -152,7 +152,7 @@ slim/register [
 		/position pos [pair! object!] "when given an object, it expects a pair! giving plug (can be a marble position material)"
 		/local trigger 
 	][
-		vin [{glass/request()}]
+		vin [{glass.r/request()}]
 		
 		if block? req [
 			either title [
@@ -222,7 +222,7 @@ slim/register [
 		/modal
 		/slide "slide down the popup like a blind"
 	][
-		vin "request-popup()"
+		vin "glass.r/request-popup()"
 
 		slide-pane: none
 		slide-frame: none
@@ -315,7 +315,7 @@ slim/register [
 	hide-request: funcl [
 		req [object! none!]
 	][
-		vin [{glass/hide-request()}]
+		vin [{glass.r/hide-request()}]
 		
 		viewport: any [
 			all [
@@ -346,7 +346,7 @@ slim/register [
 		/message msg
 		/default def-value [string!] "Fill the field with a default value."
 	][
-		vin [{request-string()}]
+		vin [{glass.r/request-string()}]
 		def-value: copy any [def-value ""]
 		request/modal title none compose/deep [
 			(
@@ -383,7 +383,7 @@ slim/register [
 		/message msg [string!]
 		/labels lbl-ok [string!] lbl-cancel [string!]
 	][
-		vin [{request-confirmation()}]
+		vin [{glass.r/request-confirmation()}]
 		rval: none
 		lbl-ok: any [lbl-ok "Ok"]
 		lbl-cancel: any [lbl-cancel "Cancel"]
@@ -430,7 +430,7 @@ slim/register [
 		buttons [block!]  {Tag list of button string and button value to return ex: [ "save" 'save  "no save" 'no-save  "cancel" #[none] ] }
 		/button-width bw [integer!] "set buttons to this width"
 	][
-		vin "request-action()"
+		vin "glass.r/request-action()"
 		rval: none
 		spec: copy [
 			auto-label (message)
@@ -498,7 +498,7 @@ slim/register [
 		title [string!]
 		/message msg
 	][
-		vin [{request-inform()}]
+		vin [{glass.r/request-inform()}]
 		request/modal title none compose/deep [
 			(
 				either msg [
@@ -552,7 +552,7 @@ slim/register [
 	add-hot-key-handler: func [
 		key
 	][
-		vin [{add-hot-key-handler()}]
+		vin [{glass.r/add-hot-key-handler()}]
 		;append event-lib/hot-keys
 		vout
 	]
@@ -567,7 +567,7 @@ slim/register [
 	refresh: func [
 		vp [object! none!]
 	][
-		vin [{refresh()}]
+		vin [{glass.r/refresh()}]
 		vp: any [vp default-viewport]
 		event-lib/queue-event [action: 'REFRESH viewport: vp]
 		
@@ -590,7 +590,7 @@ slim/register [
 		viewport [object!]
 		trigr [word! object! block!]
 	][
-		vin [{add-overlay()}]
+		vin [{glass.r/add-overlay()}]
 		
 		; this is required or else queue-event tries to use the word as a variable
 		either word? trigr [
@@ -633,7 +633,7 @@ slim/register [
 	remove-overlay: func [
 		viewport [object!]
 	][
-		vin [{remove-overlay()}]
+		vin [{glass.r/remove-overlay()}]
 		event-lib/queue-event compose/only [
 			action: 'remove-overlay
 			
@@ -676,7 +676,7 @@ slim/register [
 		/offset off [object! pair!] "if its a pair, will fill marble/aspects/offset, on-the-fly"
 		/local pin cycle?
 	][
-		vin [{pin()}]
+		vin [{glass.r/pin()}]
 		pin: marble/material/position
 		
 		unless expert [
@@ -731,7 +731,7 @@ slim/register [
 		size-to [word! none!]
 		/add s [object! pair!] "if its a pair, will create a plug, on-the-fly"
 	][
-		vin [{stretch()}]
+		vin [{glass.r/stretch()}]
 		vout
 	]
 	
@@ -747,7 +747,7 @@ slim/register [
 		/top
 		/only
 	][
-		vin [{collect-marble()}]
+		vin [{glass.r/collect-marble()}]
 		
 		; make sure the marble isn't already in a layout
 		unframe marble
@@ -787,7 +787,7 @@ slim/register [
 		frame [object!]
 		marble [object!]
 	][
-		vin "surface()"
+		vin "glass.r/surface()"
 		coll: copy frame/collection
 		discard frame 'all
 		collect frame marble
@@ -808,7 +808,7 @@ slim/register [
 		marble [object! block! word!] "you may use 'all as the marble, in which case all marbles are discarded."
 		/only
 	][
-		vin [{collect-marble()}]
+		vin [{glass.r/discard()}]
 		frame/valve/gl-discard frame marble
 		unless only [
 			fasten frame
@@ -834,7 +834,7 @@ slim/register [
 	unframe: funcl [
 		marble [object! none!]
 	][
-		vin "unframe()"
+		vin "glass.r/unframe()"
 		if frame: get in marble 'frame [
 			discard frame marble
 		]
@@ -849,7 +849,7 @@ slim/register [
 	fasten: func [
 		marble [object!]
 	][
-		vin [{fasten()}]
+		vin [{glass.r/fasten()}]
 		marble/valve/gl-fasten marble
 		vout
 		marble
@@ -871,7 +871,7 @@ slim/register [
 		marble [object!]
 		/local window
 	][
-		vin [{focus()}]
+		vin [{glass.r/focus()}]
 		
 		if window: search-parent-frames marble 'window [
 			window: last window
@@ -899,7 +899,7 @@ slim/register [
 	unfocus: func [
 		marble [word! object! none!] "what do we unfocus"
 	][
-		vin [{unfocus()}]
+		vin [{glass.r/unfocus()}]
 		switch type?/word :marble [
 			WORD! [
 				;---
@@ -956,7 +956,7 @@ slim/register [
 	stylesheet-info: func [
 		/of s "specify a stylesheet to display"
 	][
-		vin [{stylesheet-info()}]
+		vin [{glass.r/stylesheet-info()}]
 		s: any [s master-stylesheet]
 		s: list-stylesheet/using s
 		
@@ -988,7 +988,7 @@ slim/register [
 	api-von: func [
 		
 	][
-		vin [{api-von()}]
+		vin [{glass.r/api-von()}]
 		event-lib/von
 		glue-lib/von
 		epoxy-lib/von
@@ -1001,7 +1001,7 @@ slim/register [
 	;-----------------
 	styles-von: func [
 	][
-		vin [{styles-von()}]
+		vin [{glass.r/styles-von()}]
 		glaze-lib/styles-von
 		vout
 	]
