@@ -2450,12 +2450,7 @@ position: pos-mem
 			
 			vprint "==================================="
 			wrapper/glob/valve/reflect wrapper/glob any [lay [ 2 ]]
-			?? lay
 			;probe content wrapper/collection/1/aspects/offset
-			
-
-		
-			;?? lay
 
 		][
 			wrapper/valve/gl-specify wrapper spec stylesheet
