@@ -784,7 +784,7 @@ slim/register [
 			
 			
 			;--------------------------
-			;-      get-default-aspect()
+			;-        get-default-aspect()
 			;--------------------------
 			; purpose:  all marbles have one aspect which is considered the default one, usually used for their main data value.
 			;
@@ -837,11 +837,10 @@ slim/register [
 			; use setup-style() in styles which rely on default GLASS architecture, but require their own
 			; specific intialisation.
 			;-----------------
-			setup: func [
+			setup: funcl [
 				marble
-				/local simple-aspects item
 			][
-				vin [{glass/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/setup()}]
+				vin [{marble/!} uppercase to-string marble/valve/style-name {[} marble/sid {]/setup()}]
 				; make an instance-specific property containers
 				marble/aspects: make marble/aspects []
 				marble/material: make marble/material []
@@ -858,8 +857,14 @@ slim/register [
 				; allocate aspects automatically
 				foreach item aspect-list marble [
 					;vprint [ "adding aspect: " item "> " marble/aspects/:item]
-					unless plug? get in marble/aspects item [
-						marble/aspects/:item: liquify*/fill !plug (either series? item: get in marble/aspects item [copy item][item])
+					either plug? aspect: get in marble/aspects item [
+						;print "FOUND PLUG IN ASPECTS SETUP!"
+						;help aspect
+						;print aspect/sid
+						;print marble/valve/style-name
+						;probe item
+					][
+						marble/aspects/:item: liquify*/fill !plug (either series? aspect [copy aspect][aspect])
 					]
 				]
 
@@ -928,11 +933,11 @@ slim/register [
 				;print event/action
 				switch event/action [
 					start-hover [
-						;fill* event/marble/aspects/hover? true
+						fill* event/marble/aspects/hover? true
 					]
 					
 					end-hover [
-						;fill* event/marble/aspects/hover? false
+						fill* event/marble/aspects/hover? false
 					]
 				]
 				do-event event

@@ -143,6 +143,7 @@ slim/register [
 	default-window-face/color: white
 	
 	
+	
 	;--------------------------------------------------------
 	;-   
 	;- !WINDOW [ ]
@@ -152,6 +153,19 @@ slim/register [
 	; windows have extra event managing properties & rebol/view window stuff.
 	!window: make viewport-lib/!viewport [
 	
+		;--------------------------
+		;-     full-screen?:
+		;
+		; stores if this window was displayed in full-screen, is usually setup during
+		; initial call to display on main window of application
+		; 
+		; this cannot be changed later via any glass code, 
+		; ;
+		; edit this and any other required data at your own risk ( check the code for display() )
+		;--------------------------
+		full-screen?: false
+		
+		
 		;-    aspects[ ] 
 		aspects: make aspects [
 			;-        offset:
@@ -378,30 +392,38 @@ slim/register [
 			vin [{display()}]
 			unless visible? [
 				screen: system/view/screen-face
-				append system/view/screen-face/pane view-face
-				
-				view-face/size: content* material/dimension
-				vprint ["window size: " content* material/dimension]
-				
+				either full-screen? [
+					view-face/offset: 0x0
+					view-face/rate: 1 ; forces timer events in wake-event
+					view-face/options: [no-border no-title]
+					view-face/size: screen/size
+					fill* material/dimension view-face/size
+				][
+					
+					view-face/size: content* material/dimension
+					if center [
+						;off: content* aspects/offset
+						fill* aspects/offset ((screen/size - view-face/size / 2) )
+					]
+					view-face/offset: content* aspects/offset
+					view-face/rate: 1 ; forces timer events in wake-event
+					view-face/options: [resize]
+				]
 				view-face/text: any [
 					content* self/aspects/label
 					all [system/script/header system/script/title]
 					view-face/text
 					copy ""
 				]
-
+				vprint ["window size:   " content* material/dimension]
+				vprint ["window title:  " view-face/text]
 				vprint ["window offset: " content* aspects/offset]
-				if center [
-					;off: content* aspects/offset
-					fill* aspects/offset ((screen/size - view-face/size / 2) )
-				]
-				view-face/offset: content* aspects/offset
-				view-face/rate: 1 ; forces timer events in wake-event
-				view-face/options: [resize]
+				append system/view/screen-face/pane view-face
 				show screen
 			]
 			vout
 		]
+		
 		
 		
 		
@@ -876,6 +898,7 @@ slim/register [
 									;vprint event/coordinates
 									marble: detect-marble window event/coordinates
 									
+									;print marble/valve/style-name
 									
 									either selected-marble [
 										vprint "dragging"
@@ -908,7 +931,7 @@ slim/register [
 											event/action: 'DROP?
 										]
 									][
-										vprint "hovering"
+										;print "hovering"
 										
 										; enter hover mode
 										either all [

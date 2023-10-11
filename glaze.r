@@ -728,7 +728,7 @@ slim/register [
 		aspects: make aspects [
 			label: "link" 
 		
-			size: -1x-1
+			;size: -1x-1
 			
 			font: theme-small-knob-font
 			

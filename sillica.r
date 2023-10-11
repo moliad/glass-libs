@@ -203,7 +203,7 @@ slim/register [
 	set 'theme-bg-color  white * 0.97
 	set 'theme-color  40.100.255
 	set 'theme-flat-color  120.180.255
-	set 'theme
+	;set 'theme
 	
 
 	
@@ -216,7 +216,6 @@ slim/register [
 		;slim/von
 		slim/open 'app-theme-base none
 	]
-	
 	
 	
 	
@@ -253,6 +252,7 @@ slim/register [
 	set 'theme-recess-color theme-bg-color * .95
 	set 'theme-window-color theme-bg-color
 	set 'theme-border-color white * 0.75
+	set 'theme-label-color 50.50.50
 	set 'theme-knob-border-color white * 0.70
 	set 'theme-knob-color white * 0.90
 	set 'theme-glass-color theme-color
@@ -2388,6 +2388,7 @@ position: pos-mem
 		/only "do not automatically open a window if a !window is the wrapper (which it is by default)"
 		/size sz [pair! decimal!] "when decimal! its a scale of the screen-size."
 		/center
+		/full-screen
 		/tight "adds or creates a 'tight option to wrapper spec without need for options block."
 		/local style guiface bx draw-spec filling wrap?
 	][
@@ -2470,10 +2471,16 @@ position: pos-mem
 			]
 		]
 		
+		if full-screen [
+			if in wrapper 'full-screen? [
+			print "FULL-SCREEN!"
+				wrapper/full-screen?: true
+			]
+		]
+		
 		if offset [
 			fill* wrapper/aspects/offset offset
 		]
-		
 		
 		if all [
 			not only
@@ -2646,6 +2653,129 @@ position: pos-mem
 		counter
 	]
 
+
+	;--------------------------
+	;-     inner-box()
+	;--------------------------
+	; purpose:  returns a box with the same aspect ratio which would fit inside another
+	;           box.
+	;
+	; inputs:   frame : outer frame which serves as a limit to fit.
+	;           box: inner box which we scale to fit in frame, keeping aspect ratio.
+	;           mode: how do we resize inner box
+	;           position: where do we place inner box relative to frame? [start end center]
+	;
+	; returns:  an object! with [x y w h]
+	;
+	; notes:    
+	;
+	; to do:    
+	;
+	; tests:    
+	;--------------------------
+	inner-box: funcl [
+		frame [pair!]
+		box [pair!]
+		mode [word!]
+		position [word!]
+	][
+		;vin "inner-box()"
+		f: frame
+		b: box
+		
+		result: context [
+			offset: 0x0
+			size: f
+		]
+		r: result
+		
+		faspect: f/x / f/y
+		baspect: b/x / b/y
+		
+		p: 0x0  ; position
+		s: 0x0  ; size
+		
+		;v?? faspect
+		;v?? baspect
+
+		either baspect >= faspect [
+			;vprint "box is wider than frame"
+			;aspect: 'wide
+			wide?: true
+		][
+			;vprint "box is taller than frame"
+			;aspect: 'tall
+			wide?: false
+		]
+		
+		switch mode [
+			fit [
+				; we stretch as much as possible without changing
+				; aspect ration.  the align 
+				either wide? [
+					;vprint "box is wider than frame"
+					s/x: f/x ; result is as wide as frame
+					s/y: f/x / baspect ; height is inverse of aspect
+					space: f/y - s/y ; free space 
+					
+				][
+					;vprint "box is taller than frame"
+					s/y: f/y ; result is as wide as frame
+					s/x: f/y * baspect ; width is aspect of height
+					space: f/x - s/x ; free space 
+				]
+			] 
+			stretch		[
+				; we fill the whole area
+				result/s: frame
+			]
+			keep-size [
+				; we center the image if smaller, we clip it if larger
+			]
+		]
+		space: to-integer (space / 2)
+		
+		;v?? frame
+		;v?? box
+		;v?? s
+		;v?? space
+		
+		switch position [
+			center [
+				either wide? [
+					p/y: space
+				][
+					p/x: space
+				]
+			]
+			start [
+				switch mode [
+					fit[
+						; nothing to do, start is always pos: 0x0
+					]
+				]
+				
+			]
+			end [
+				switch mode [
+					fit [
+						either wide? [
+							p/y: space
+						][
+							p/x: space
+						]
+					]
+				]
+			]
+		]
+		
+		result/offset: p
+		result/size: s
+		;v?? result
+		;vout
+		
+		result
+	]
 	
 	
 	;-----------------
@@ -2666,7 +2796,6 @@ position: pos-mem
 		/local range sub
 	][
 		;vin [{sub-box()}]
-		
 		
 		;?? box
 		;?? min
@@ -2765,6 +2894,35 @@ position: pos-mem
 		s: stylesheet: old: none
 		vout
 		marble
+	]
+	
+	
+	
+	;--------------------------
+	;-     pick-style()
+	;--------------------------
+	; purpose:  
+	;
+	; inputs:   
+	;
+	; returns:  
+	;
+	; notes:    
+	;
+	; to do:    
+	;
+	; tests:    
+	;--------------------------
+	pick-style: funcl [
+		name [word!]
+		/from stylesheet [block!]
+	][
+		;vin "pick-style()"
+		s: any [ stylesheet master-stylesheet ]
+		result: select s name
+		;vout
+		result
+		
 	]
 	
 	

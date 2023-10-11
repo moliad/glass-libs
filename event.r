@@ -635,12 +635,12 @@ slim/register [
 	;
 	; adds/replaces a handler in an event stream
 	; 
-	; be carefull, this function is called for EVERY event
+	; be carefull, given function is called for EVERY event
 	;
 	; if your handler needs any persistent values, wrap the function within
 	; a context, and call handle-stream from within the context.
 	;
-	; be carefull, if the named handler already exists, it WILL be replaced.
+	; be careful, if the named handler already exists, it WILL be replaced.
 	;-----------------
 	handle-stream: func [
 		name [word!]
@@ -649,7 +649,7 @@ slim/register [
 		/after ahdlr [word!] "add after handler"
 		/within strm [block! object!] "add a handler to a marble or viewport"
 	][
-		vin [{add-handler()}]
+		vin [{handle-stream()}]
 		either (copy/part third :handler 2) = compose/deep [event [(object!)]] [
 			vprint "HANDLER COMFORMS!"
 			
@@ -670,7 +670,7 @@ slim/register [
 			
 		][
 			vprobe  (copy/part third :handler 2)
-			to-error "GLASS/Event.r/add-handler() requires first argument to be event [object!]"
+			to-error "GLASS/Event.r/handle-stream() requires first argument specification of given handler function to be 'event [object!]'"
 		]
 		vout
 	]
@@ -2071,6 +2071,7 @@ slim/register [
 						MOVE [
 							;vprin "."
 							; detect immobile mouse, to enable tool tips like system
+							; needs fix doesn't really seem to work
 							
 							either event/coordinates = last-move-position [
 								vprint "mouse is immobile!"

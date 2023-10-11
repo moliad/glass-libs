@@ -76,6 +76,7 @@ slim/register [
 	
 	marble-lib: slim/open 'marble none
 	event-lib: slim/open 'event none
+	slim/open/expose 'utils-series none [comply]
 	
 	!plug: liquify*: content*: fill*: link*: unlink*: none
 	liquid-lib: slim/open/expose 'liquid none [
@@ -89,23 +90,12 @@ slim/register [
 	]
 	
 	sillica-lib: slim/open/expose 'sillica none [
-		master-stylesheet
-		alloc-marble 
-		regroup-specification 
-		list-stylesheet 
-		collect-style 
-		relative-marble?
-		prim-bevel
-		prim-x
 		prim-label
-		prim-knob
-		top-half
-		bottom-half
+		inner-box
 	]
 	epoxy-lib: slim/open/expose 'epoxy none [!box-intersection]
 
 	
-
 	;--------------------------------------------------------
 	;-   
 	;- GLOBALS
@@ -135,7 +125,7 @@ slim/register [
 			
 
 			;-        label-color:
-			label-color: white
+			label-color: theme-label-color
 			
 			
 			;-        label-shadow-color:
@@ -147,14 +137,6 @@ slim/register [
 			;-        font
 			font: theme-label-font
 			
-			;-        padding
-			padding: 0x0
-			
-			;-        align:
-			; not yet implemented, but will be used to place the image when using keep-aspect? and the image can "float" within
-			; the space its given.
-			align: 'center
-			
 			;-        text-align:
 			; aligned from edge of marble, not edge of image.  this allows you to use padding in order to put text underneath.
 			; when combined with align, you will be able to have full control over image location and text.
@@ -162,8 +144,28 @@ slim/register [
 			
 			
 			;-        keep-aspect?:
+			; setup a value to decide how to react to resizing based on source image size
 			keep-aspect?: false
 			
+			;-        sizing-mode:
+			; Decide how to react to pane sizing
+			; choose from :  stretch, keep-aspect, keep-size (clipped)
+			fill-mode: 'keep-aspect
+			
+			;-        align:
+			; not yet implemented
+			;
+			; use to place the image when sizing-mode setup allows the image can "float" within
+			; the space its given.
+			align: 'center
+			
+			;-        fill
+			; only usefull 
+			; choose from  [auto fill-x fill-y ]
+			
+			
+			;-        padding
+			padding: 0x0			
 			
 			
 			;-        border-size:
@@ -222,13 +224,14 @@ slim/register [
 						label-color !color  (random white)
 						label-shadow-color
 						label !string ("")
-						align !word
 						text-align !word
 						padding !pair
 						font !any
 						corner !integer
 						border-style !any
 						border-size !integer
+						align !word
+						fill-mode !word
 					]
 					
 					;-            glob/gel-spec:
@@ -238,7 +241,10 @@ slim/register [
 						; event backplane
 						position dimension 
 						[
-							; images are input neutral
+							line-width 1 
+							pen none 
+							fill-pen (to-color gel/glob/marble/sid) 
+							box (data/position=) (data/position= + data/dimension= - 1x1)
 						]
 						
 						; bg layer (ex: shadows, textures)
@@ -246,27 +252,30 @@ slim/register [
 						;[]
 						
 						; fg layer
-						position dimension image label-color label-shadow-color label align text-align padding font corner border-style border-size
+						position dimension image label-color label-shadow-color label align 
+						text-align padding font corner border-style border-size fill-mode 
 						[
 							;pen (data/border-style=)
-							pen none
-							fill-pen none
-							IMAGE-FILTER nearest 
-							image (data/image=) (data/position= + data/padding=) (
-								final-pos: (data/dimension=  +  data/position=  - (data/padding= ) )
-								final-size: final-pos - data/position=
-								;print [ "data/dimension=:" data/dimension=]
-								;print [ "data/position=:" data/position=]
-								;print [ "data/padding=:" data/padding=]
-								;print [ "final size=:" final-size]
-								;?? final-size
-								final-pos 
-							) 
-							;IMAGE-FILTER nearest  
+							(
+								;print "++++++++++++"
+								comply data/image= [ 
+									.area: inner-box (data/dimension= - (data/padding= * 2)) data/image=/size 'fit 'start
+									.pos-end: data/position= + data/padding= + .area/offset + .area/size
+									compose [
+										pen none
+										fill-pen none
+										IMAGE-FILTER bilinear 
+										;IMAGE-FILTER nearest  
+										image (data/image=) 
+										( data/position= + data/padding= + .area/offset ) 
+										(.pos-end) 
+									]
+								]
+							)
 							fill-pen none
 							pen (data/border-style=)
 							line-width (data/border-size=)
-							box (data/position= + data/padding=) (data/dimension= - 1x1 + data/position= - data/padding= )(data/corner=)
+							box (data/position= + data/padding=) (data/dimension= - 1x1 + data/position= - (data/padding= * 2)) (data/corner=)
 							pen none
 							
 ;							(prim-label data/label= (data/position= + data/padding=) (data/dimension=   - data/padding= - data/padding= ) 
@@ -284,11 +293,6 @@ slim/register [
 						;[]
 					]
 				]
-			
-			
-
-		
-			
 			]
 			
 			;-----------------
@@ -301,11 +305,11 @@ slim/register [
 			; it has done previously.
 			;
 			;-----------------
-			dialect: func [
+			dialect: funcl [
 				marble [object!]
 				spec [block!]
 				stylesheet [block!] "Required so stylesheet propagates in marbles we create"
-				/local data color-count
+				
 			][
 				vin [{dialect()}]
 				color-count: 1
@@ -332,6 +336,11 @@ slim/register [
 						| 'no-shadow (
 							fill* aspects/label-shadow-color none
 						)
+						
+						| 'no-border (
+							fill* aspects/border-style none
+						)
+						
 						
 						; removes all styling and label
 						| 'plain (
