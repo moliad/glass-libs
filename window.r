@@ -423,6 +423,7 @@ slim/register [
 					]
 					view-face/offset: content* aspects/offset
 					view-face/rate: 1 ; forces timer events in wake-event
+				]
 				view-face/options: copy []
 				if resize? [
 					append view-face/options 'resize
