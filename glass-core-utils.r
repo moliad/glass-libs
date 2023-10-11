@@ -65,6 +65,8 @@ REBOL [
 
 slim/register [
 
+	slim/open/expose 'liquid none [plug?]
+
 
 	;-----------------
 	;-     search-parent-frames()
@@ -104,6 +106,108 @@ slim/register [
 		]
 		vout
 		rdata
+	]
+	
+	
+	;--------------------------
+	;-     search-layout()
+	;--------------------------
+	; purpose:  a recursive search to retrieve one or all marbles matching a set of criteria.
+	;
+	; inputs:   criteria is determined by refinements
+	;
+	; returns:  
+	;
+	; notes:    this is a low-level function, no error checking is done.
+	;
+	; to do:    
+	;
+	; tests:    
+	;--------------------------
+	search-layout: funcl [
+		root [object!] "marble (usually a frame to start searching)"
+		criteria [block!] "look at match-criteria() to know what you can use here."
+	][
+		vin "search-layout()"
+		success?: done?: false
+		
+		current: root
+		
+		;---
+		; is this a frame with potential children?
+		either all [ 
+			in current 'collection
+			true? current/valve/is-frame?
+		][
+			;------------------------------------
+			foreach marble current/collection [
+				if val: search-layout marble criteria [
+					success?: val
+					break
+				]
+			]
+		][
+			;-----------
+			; we are at a marble, test criteria itself
+			success?: match-criteria current criteria
+		]
+		any [success? done?]
+		vout
+		success?
+	]
+	
+	;--------------------------
+	;-     match-criteria()
+	;--------------------------
+	; purpose:  
+	;
+	; inputs:   criteria contains name of criteria and data to use to match it
+	;
+	; returns:  none is always a negative, positive value is based on criteria, could be anything.
+	;
+	; notes:    
+	;
+	; to do:    
+	;
+	; tests:    
+	;--------------------------
+	match-criteria: funcl [
+		marble [object!]
+		critera [block!]
+	][
+		vin "match-criteria()"
+		rval: none
+		switch critera/1 [
+			;----------------------------------
+			; allows to find a marble by one of its aspects or material plug id
+			;
+			; this is useful when when follow a processing trace and we wonder
+			; to which marble the liquid dependency graph id belongs to.
+			;----------------------------------
+			FACET-ID [
+				foreach word words-of marble/aspects [
+					v?? word
+					plug: select marble/aspects 'word
+					if plug? plug [
+						if plug/sid = critera/2 [
+							rval: marble
+						]
+					]
+				]
+			]
+			
+			;----------------------------------
+			; find a marble by its gel being drawn
+			;----------------------------------
+			GLOB-ID [
+				if marble/glob/sid = critera/2 [
+					rval: marble
+				]
+			]
+			
+		]
+		vout
+		rval
 	]
 	
 	

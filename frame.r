@@ -533,7 +533,7 @@ slim/register [
 			gl-materialize: func [
 				frame [object!]
 			][
-				vin [{glass/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/gl-materialize()}]
+				vin [{frame/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/gl-materialize()}]
 				; manage relative positioning
 				;if relative-marble? frame [
 					frame/material/position: liquify*/fill epoxy-lib/!junction frame/material/position
@@ -601,7 +601,7 @@ slim/register [
 				marbles [object! block!]
 				/local marble fg-glob
 			][
-				vin [{glass/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/accumulate()}]
+				vin [{frame/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/accumulate()}]
 				; normalize the input type,
 				; if marbles is a block, it must only contain a series of marble OBJECTS.
 				marbles: compose [(marbles)]
@@ -647,8 +647,9 @@ slim/register [
 				frame
 				marble
 			][
-				vin [{link-glob()}]
+				vin [{frame/link-glob()}]
 				frame/glob/valve/link frame/glob marble/glob
+				vprobe content frame/glob
 				vout
 			]
 			
@@ -664,8 +665,9 @@ slim/register [
 				frame
 				marble
 			][
-				vin [{unlink-glob()}]
+				vin [{frame/unlink-glob()}]
 				frame/glob/valve/unlink/only frame/glob marble/glob
+				;vprobe content frame/glob/reflection
 				vout
 			]
 			
@@ -695,9 +697,8 @@ slim/register [
 				/top "collects at the top rather tahn the end"
 				/local frm
 			][
-				;vin [{glass/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/gl-collect()}]
+				vin [{frame/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/gl-collect()}]
 				;vprint ["collecting one marble of type: " to-string marble/valve/style-name ]
-				
 				
 				either frm: get in frame 'collect-in-frame [
 					marble/frame: frm
@@ -740,8 +741,6 @@ slim/register [
 					
 					; tell our glob to add the marble's graphics to our graphics.
 					link-glob frame marble
-					
-	
 	
 	
 					; make sure fg-glob is ALWAYS in front of marbles
@@ -755,7 +754,7 @@ slim/register [
 					; this is advanced stuff, use with caution.	
 					frame/valve/collect frame marble
 				]
-				;vout
+				vout
 			]
 			
 			
@@ -931,7 +930,7 @@ slim/register [
 				frame
 				/local marble previous-marble mtrl mmtrl
 			][
-				vin [{glass/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/gl-fasten()}]
+				vin [{frame/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/gl-fasten()}]
 				
 				mtrl: frame/material
 				
@@ -1146,7 +1145,7 @@ slim/register [
 				stylesheet [block! none!] "required so stylesheet propagates in marbles we create"
 				/local marble item pane data marbles set-word pair-count tuple-count
 			][
-				vin [{glass/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/specify()}]
+				vin [{frame/!} uppercase to-string frame/valve/style-name {[} frame/sid {]/specify()}]
 				;v?? spec
 				
 				stylesheet: any [stylesheet master-stylesheet]
@@ -1184,6 +1183,7 @@ slim/register [
 						) 
 						
 						| 'activate (
+							;print "FRAME ACTIVE"
 							fill* frame/aspects/active? true
 						)
 						

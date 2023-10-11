@@ -296,7 +296,7 @@ slim/register [
             fasten: funcl [
                 group [object!]
             ][
-                vin "fasten()"
+                vin "group/fasten()"
                 ;group/valve/gl-fasten group
                 vout
             ]

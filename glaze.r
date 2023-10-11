@@ -482,7 +482,7 @@ slim/register [
 	;-     shadows
 	shadow-separator: sl/collect-style/as make marble/!marble [
 		aspects: make aspects [label: none padding: 0x0]
-		material: make material [fill-weight: 0x0 min-dimension: 3x3 ]
+		material: make material [fill-weight: 0x0 min-dimension: 4x4 ]
 
 
 		valve: make valve [
@@ -539,9 +539,11 @@ slim/register [
 						position dimension
 						[
 							line-width 1
-							pen  (0.0.0.128)
+							pen  (0.0.0.100)
+							line  (data/position= + (0x1 * data/dimension= - 0x4)) (data/position= + data/dimension= - 0x4)
+							pen (0.0.0.160)
 							line  (data/position= + (0x1 * data/dimension= - 0x3)) (data/position= + data/dimension= - 0x3)
-							pen (0.0.0.200)
+							pen (0.0.0.210)
 							line  (data/position= + (0x1 * data/dimension= - 0x2)) (data/position= + data/dimension= - 0x2)
 							pen (0.0.0.240)
 							line  (data/position= + (0x1 * data/dimension= - 0x1)) (data/position= + data/dimension= - 0x1)
@@ -739,6 +741,7 @@ slim/register [
 			glob-class: make glob-class [
 			
 				valve: make valve [
+					pen-clr: none
 
 					gel-spec: [
 						; event backplane
@@ -794,17 +797,17 @@ slim/register [
 												;pen theme-knob-border-color
 												box (data/position= + 3x3) (data/position= + data/dimension= - 3x3) 2
 
-										(
-										either data/hover?= [
-											compose [
-												line-width 1
-												pen none
-												fill-pen (theme-glass-color + 0.0.0.200)
-												;pen theme-knob-border-color
-												box (data/position= + 3x3) (data/position= + data/dimension= - 3x3) 2
-											]
-										][[]]
-										)
+;										(
+;										either data/hover?= [
+;											compose [
+;												line-width 1
+;												pen none
+;												fill-pen (theme-glass-color + 0.0.0.200)
+;												;pen theme-knob-border-color
+;												box (data/position= + 3x3) (data/position= + data/dimension= - 3x3) 2
+;											]
+;										][[]]
+;										)
 
 										]
 									]
@@ -823,24 +826,25 @@ slim/register [
 														
 										)
 										line-width 1
-										pen none
 										fill-pen (
+											zzzz: 66
 											;--------
 											; if the color was manually changed... 
 											; set its bg to that color, instead of pure white.
 											;---
-											either data/color= <> theme-knob-color [
+											pen-clr: either data/color= <> theme-knob-color [
 												data/color=
 											][
 												white
 											]
 										)
+										pen (pen-clr)
 										box (data/position=) (data/position= + data/dimension= - 1x1 ) (data/corner=)
-										fill-pen (theme-glass-color + 0.0.0.175)
-										pen (
-											(theme-glass-color + 0.0.0.175)
-										) 
-										box (data/position=) (data/position= + data/dimension= - 1x1 ) (data/corner=)
+;										fill-pen (theme-glass-color + 0.0.0.175)
+;										pen (
+;											(theme-glass-color + 0.0.0.175)
+;										) 
+;										box (data/position=) (data/position= + data/dimension= - 1x1 ) (data/corner=)
 										(sl/prim-drop-shadow data/position=  data/dimension= - 1x1   data/corner= )
 										
 										

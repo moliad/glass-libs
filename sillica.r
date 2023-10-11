@@ -2379,7 +2379,7 @@ position: pos-mem
 	;
 	; the layout func was move here since some marbles will need layout in their initialization.
 	;-----------------
-	layout: func [
+	layout: funcl [
 		spec [block!]
 		/within wrapper [word! object! none!] "a style name or an actual allocated marble, inside of which we will put new marbles."
 		/using stylesheet [block!]
@@ -2390,10 +2390,12 @@ position: pos-mem
 		/center
 		/full-screen
 		/tight "adds or creates a 'tight option to wrapper spec without need for options block."
-		/local style guiface bx draw-spec filling wrap?
+		/no-title  "remove title, windows 10 will still show a 6px title if resizing is enabled."
+		/no-resize  "remove sizing ability"
+		/layers lay [block!] "set the layers to use in display."
 	][
 		vin [{layout()}]
-		vprobe spec
+		;vprobe spec
 		
 		
 		; normalize stylesheet
@@ -2443,11 +2445,14 @@ position: pos-mem
 		spec: reduce [spec]
 		
 		either wrap? [
+			; setup glob so it returns its draw block
 			wrapper/valve/gl-specify/wrapper wrapper spec stylesheet
 			wrapper/valve/gl-fasten wrapper
+			
+			vprint "==================================="
+			wrapper/glob/valve/reflect wrapper/glob any [lay [ 2 ]]
+			;probe content wrapper/collection/1/aspects/offset
 
-			; setup glob so it returns its draw block
-			wrapper/glob/valve/reflect wrapper/glob [2 ]
 		][
 			wrapper/valve/gl-specify wrapper spec stylesheet
 			wrapper/valve/gl-fasten wrapper
@@ -2458,7 +2463,6 @@ position: pos-mem
 		;
 		; if you specify /only, we forego this step, and expect the application
 		; to call its display method later on.
-		
 		if size [
 			switch type?/word sz [
 				pair! [
@@ -2482,13 +2486,23 @@ position: pos-mem
 			fill* wrapper/aspects/offset offset
 		]
 		
+		if no-title [
+			if in wrapper 'title? [
+				wrapper/title?: false
+			]
+		]
+		
+		if no-resize [
+			if in wrapper 'resize? [
+				wrapper/resize?: false
+			]
+		]
 		if all [
 			not only
 			in wrapper 'display
 			in wrapper 'hide
 		][
-			vprint "I WILL DISPLAY WINDOW!!!"
-			
+			;vprint "I WILL DISPLAY WINDOW!!!"
 			either center [
 				wrapper/display/center
 			][
@@ -2547,7 +2561,6 @@ position: pos-mem
 				;	halt
 				;]
 			]
-			
 		][
 			to-error "Invalid reference style... not a glass marble!"
 		]

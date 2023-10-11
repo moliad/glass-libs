@@ -1605,7 +1605,7 @@ slim/register [
 			fasten: func [
 				grid
 			][
-				vin [{glass/!} uppercase to-string grid/valve/style-name {[} grid/sid {]/fasten()}]
+				vin ["" uppercase to-string grid/valve/style-name {[} grid/sid {]/fasten()}]
 				
 				;-          --> glob!
 				grid/glob/valve/link grid/glob grid/raster-glob 
